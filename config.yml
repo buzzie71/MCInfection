@@ -1,0 +1,32 @@
+team:
+    zombie:
+    
+    human:
+   
+    spectator:
+    
+    waiting:
+    
+spawn:
+    zombie:
+    
+    human:
+    
+    zombiehold:
+    
+    humanhold:
+    
+    leave:
+    
+    wait:
+    
+inventory:
+    zombie:
+    
+    human:
+    
+potion:
+    zombie:
+    
+    human:
+    
