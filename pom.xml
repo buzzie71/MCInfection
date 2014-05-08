@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.gmail.buzziespy</groupId>
     <artifactId>MCInfection</artifactId>
-    <version>1.0</version>
+    <version>0.5</version>
     <packaging>jar</packaging>
     <build>
         <sourceDirectory>${basedir}/src</sourceDirectory>

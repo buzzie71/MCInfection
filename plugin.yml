@@ -2,180 +2,155 @@ name: MCInfection
 main: com.gmail.buzziespy.MCInfection.MCInfection
 version: 0.5
 
-commands:
-    joinspec:
-       description: Force-join the spectator team.
-       usage: /joinspec
-       permission: op
-       permission-message:
-       
+permissions:
+    infect.admin:
+        description: Access to all game commands.
+        children:
+            infect.player: true
+    infect.player:
+        description: Access to game player commands.
+        default: true
+
+commands:  
     joinwait:
        description: Force-join the waiting (spectator) team.
        usage: /joinspec
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     joinhum:
        description: Force-join the human team.
        usage: /joinhum
-       permission: op
-       permission-message:
+       permission: infect.admin
     
     joinzom:
        description: Force-join the zombie team.
        usage: /joinzom
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     leavegame:
        description: Leave the game.
        usage: /leavegame
-       permission: 
-       permission-message:
+       permission: infect.player
        
     teams:
        description: See team rosters.
        usage: /teams
-       permission: 
-       permission-message:
+       permission: infect.player
        
     set-human-spawn:
        description: Set a human spawn point.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     set-zombie-spawn:
        description: Set a zombie spawn point.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     human-spawn:
        description: See human spawn points.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     zombie-spawn:
        description: See zombie spawn points.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     clear-human-spawn:
        description: Clear human spawn points.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     clear-zombie-spawn:
        description: Clear zombie spawn points.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
     
     set-human-hold:
        description: Set human holding cell location.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     clear-human-hold:
        description: Clear human holding cell location.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     set-zombie-hold:
        description: Set zombie holding cell location.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     clear-zombie-hold:
        description: Clear zombie holding cell location.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     human-hold:
        description: See human holding cell location.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     zombie-hold:
        description: See zombie holding cell location.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     save-human-loadout:
        description: Save human loadout.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     human-loadout:
        description: Clears your inventory and replaces it with human loadout.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     save-zombie-loadout:
        description: Save zombie loadout.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     zombie-loadout:
        description: Clears your inventory and replaces it with zombie loadout.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     save-leavespawn:
        description: Save leave point.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     leavespawn:
        description: See leave point.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     save-waitspawn:
        description: Save wait point.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     waitspawn:
        description: See wait point.
        usage: /teams
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     joingame:
        description: Join the game.  Your inventory is wiped on entry.
        usage: /joingame
-       permission: 
-       permission-message:
+       permission: infect.player
        
     infection-start:
        description: Starts the game.
        usage: /infection-start
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     infection-end:
        description: Force-end the game.
        usage: /infection-end
-       permission: op
-       permission-message:
+       permission: infect.admin
        
     
 permissions:

@@ -1,6 +1,7 @@
 package com.gmail.buzziespy.MCInfection;
 
 //import java.util.Collection;
+import java.io.File;
 import java.util.Arrays;
 import java.util.List;
 //import java.util.Map;
@@ -8,23 +9,14 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 //import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
@@ -50,20 +42,22 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	 * v Cancel that task if zombies win
 	 */
 	
-	
-	private int DEFAULT_GAME_TIME = 60; //one minute in seconds
-	private BukkitTask gameEnd;
-	
+	public final Configuration config = new Configuration(this);
+        public final Utils utils = new Utils(this);
+	public BukkitTask gameEnd;
+        public boolean gameActive = false;
+        
 	@Override
 	public void onEnable()
 	{
-		getLogger().info("Loading config file...");
-		//load up the config file
-		this.getConfig();
-		//save copy
-		this.saveDefaultConfig();
-		//enable the listener
-		getServer().getPluginManager().registerEvents(this, this);
+            getLogger().info("Loading config file...");
+            File configFile = new File(getDataFolder(), "config.yml");
+            if(!configFile.exists()) {
+                getConfig().options().copyDefaults(true);
+                saveConfig();
+            }
+            config.load();
+            (new InfectionListener(this)).registerEvents();
 	}
 	
 	@Override
@@ -71,7 +65,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	{
 		//save the config file
 		getLogger().info("Saving config!");
-		this.saveConfig();
+		config.save();
 	}
 	
 	/*
@@ -93,166 +87,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	 * It is expected to have multiple of these respawn locations per team.  These can be set via commands.
 	 * The program will randomly choose a place and send the player there.
 	 */
-	
-	public boolean gameActive = false;
-	//public int HUMAN_RESPAWN = 5;
-	public int ZOMBIE_RESPAWN = 5;
-	
-	public int GAME_TIME = 60;
-	public boolean NO_FRIENDLY_FIRE = true;
-	
-	
-	public short HUMAN_WOOL_COLOR = (short)14; //14 = red
-	public short ZOMBIE_WOOL_COLOR = (short)5; //5 = lime green
-	
-	@EventHandler
-	public void onAttack(EntityDamageByEntityEvent e)
-	{
-		if (e.getDamager() instanceof Player && e.getEntity() instanceof Player)
-		{
-			//Handle PvP damage here
-			Player attacker = (Player)e.getDamager();
-			Player defender = (Player)e.getEntity();
-			
-			//prevent friendly fire if toggled
-			if (NO_FRIENDLY_FIRE && (isHuman(attacker) && isHuman(defender))||(isZombie(attacker) && isZombie(defender)))
-			{
-				e.setCancelled(true);
-			}
-		}
-	}
-	
-	@EventHandler
-	public void onPlayerDeath(PlayerDeathEvent e)
-	{
-		//Prevent players in game from dropping items on death
-		if (isHuman(e.getEntity()) || isZombie(e.getEntity()))
-		{
-			e.getDrops().clear();
-		}
-		
-		if (isHuman(e.getEntity()))
-		{
-			//Set the dead player's spawn to a pre-designated location in the config to wait five seconds before respawning on the map.
-			//In gameplay, this would likely be some sort of bedrock holding cell outside of the map.
-			
-			//joinZombie(e.getEntity());
-			
-			//check if there are any humans left alive; if not, declare game over
-			getServer().broadcastMessage(ChatColor.GREEN + e.getEntity().getName() + " has been infected!");
-			if (gameActive && this.getConfig().getStringList("team.human").size() == 1 && this.getConfig().getStringList("team.human").get(0).equals(e.getEntity().getName()))
-			{
-				getServer().broadcastMessage(ChatColor.GREEN + "The zombies have won! Game over!");
-				//End the game
-				gameActive = false;
-				gameEnd.cancel();
-				//move all players back to waiting list
-				resetPlayers();
-			}
-		}
-		if (isZombie(e.getEntity()))
-		{
-			
-		}
-	}
-	
-	
-	@EventHandler
-	public void onPlayerRespawn(PlayerRespawnEvent e)
-	{
-		//do nothing if player is not in game
-		if (!isInGame(e.getPlayer()))
-		{
-			return;
-		}
-		
-		//Send all in-game players players to the wait spawn if game is over
-		if (!gameActive && isInGame(e.getPlayer()))
-		{
-			Location l = getLocFromString(this.getConfig().getString("spawn.wait"), e.getPlayer());
-			if (l == null)
-			{
-				e.setRespawnLocation(e.getPlayer().getBedSpawnLocation());
-			}
-			else
-			{
-				e.setRespawnLocation(l);
-			}
-			e.getPlayer().sendMessage(ChatColor.YELLOW + "You are now waiting to play!");
-			return;
-		}
-		
-		if (isHuman(e.getPlayer()) && gameActive)
-		{
-			e.setRespawnLocation(getHoldLoc("spawn.humanhold", e.getPlayer()));
-		}
-		
-		if (isZombie(e.getPlayer()) && gameActive)
-		{
-			e.setRespawnLocation(getHoldLoc("spawn.zombiehold", e.getPlayer()));
-		}
-		final Player p = e.getPlayer();
-		p.sendMessage(ChatColor.GREEN + "You will respawn in " + ZOMBIE_RESPAWN + " seconds.");
-		Runnable respawn = new Runnable() { 
-			 public void run() {
-				 quietLeaveGame(p);
-				 joinZombie(p);
-			 }
-		};
-		Bukkit.getScheduler().scheduleSyncDelayedTask(this, respawn, (long)ZOMBIE_RESPAWN*20);
-	}
-	
-	@EventHandler
-	public void lockTeamWoolMove(InventoryClickEvent e)
-	{
-		//Cancel event if player is human and item clicked is red wool (default)
-		//OR player is zombie and item clicked is lime green wool (default)
-		
-		//NOTE: this is a cast to Player from HumanEntity - no catching of extraordinary circumstances is being done
-		//at the moment
-		
-		//At the moment this code is duplicating items - the wool in the hotbar is restored but the item picked up in the cursor may be tosse
-		Player p = (Player)e.getWhoClicked();
-		ItemStack inv = e.getCurrentItem();
-		ItemStack cur = e.getCursor();
-		//there's a null pointer exception firing on the next line - probably needs handling of null items (eg. air)
-		if ((isHuman(p) && inv.getType().equals(Material.WOOL) && inv.getDurability() == HUMAN_WOOL_COLOR) || (isZombie(p) && inv.getType().equals(Material.WOOL) && inv.getDurability() == ZOMBIE_WOOL_COLOR))
-		{
-			e.setCursor(cur);
-			e.setCancelled(true);
-		}
-	}
-	
-	@EventHandler
-	public void preventTeamWoolDrop(PlayerDropItemEvent e)
-	{
-		ItemStack b = e.getItemDrop().getItemStack();
-		if (b.getType().equals(Material.WOOL))
-		{
-			if ((b.getDurability() == HUMAN_WOOL_COLOR && isZombie(e.getPlayer())) || (b.getDurability() == HUMAN_WOOL_COLOR && isZombie(e.getPlayer())))
-			{
-				//something here to detect color of the wool placed
-				 e.setCancelled(true);
-			}
-		}
-	}
-	
-	
-	//This method prevents players from placing wool blocks of their team color
-	@EventHandler
-	public void preventWoolBuild(BlockPlaceEvent e)
-	{
-		Block b = e.getBlock();
-		if (b.getType().equals(Material.WOOL))
-		{
-			if ((b.getData() == HUMAN_WOOL_COLOR && isZombie(e.getPlayer())) || (b.getData() == HUMAN_WOOL_COLOR && isZombie(e.getPlayer())))
-			{
-				 e.setCancelled(true);
-			}
-		}
-	}
-	
-	
+        
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
 		/*The player has joined the game if the player is listed in any of the four "teams" below.
@@ -269,21 +104,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
 		 */
 		
 		//These fail silently for command senders that are not players
-		if (cmd.getName().equalsIgnoreCase("joinspec"))
-		{
-			Player p = null;
-			if (sender instanceof Player && args.length == 0)
-			{
-				p = (Player)sender;
-			}
-			else if (args.length == 1 && sender.hasPermission("team.changer"))
-			{
-				p = (Player)sender.getServer().getOfflinePlayer(args[0]);
-			}
-			joinSpectator(p);
-			return true;
-		}
-		else if (cmd.getName().equalsIgnoreCase("joinwait"))
+                if (cmd.getName().equalsIgnoreCase("joinwait"))
 		{
 			Player p = null;
 			if (sender instanceof Player && args.length == 0)
@@ -359,7 +180,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
 			}
 			else if (sender instanceof ConsoleCommandSender)
 			{
-				rosterReport();
+				utils.rosterReport();
 			}
 			return true;
 		}
@@ -836,163 +657,9 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	//TODO
 	//Methods below, commands above 
 	
-	public void rosterReport()
-	{
-		getLogger().info("Spectator team");
-		for (String name: this.getConfig().getStringList("team.spectator"))
-		{
-			getLogger().info(name);
-		}
-		getLogger().info("Waiting team");
-		for (String name: this.getConfig().getStringList("team.waiting"))
-		{
-			getLogger().info(name);
-		}
-		getLogger().info("Human team");
-		for (String name: this.getConfig().getStringList("team.human"))
-		{
-			getLogger().info(name);
-		}
-		getLogger().info("Zombie team");
-		for (String name: this.getConfig().getStringList("team.zombie"))
-		{
-			getLogger().info(name);
-		}
-	}
-	
-	public void playerRosterReport(Player p)
-	{
-		String s = "";
-		s += ChatColor.RED + "Humans: " + ChatColor.LIGHT_PURPLE;
-		for (String name: this.getConfig().getStringList("team.human"))
-		{
-			s += name + " ";
-		}
-		s += "\n";
-		
-		s += ChatColor.GREEN + "Zombies: " + ChatColor.AQUA;
-		for (String name: this.getConfig().getStringList("team.zombie"))
-		{
-			s += name + " ";
-		}
-		s += "\n";
-		
-		s += ChatColor.BLUE + "Spectators: " + ChatColor.GRAY;
-		for (String name: this.getConfig().getStringList("team.spectator"))
-		{
-			s += name + " ";
-		}
-		for (String name: this.getConfig().getStringList("team.waiting"))
-		{
-			s += name + " ";
-		}
-		s += "\n";
-		
-		
-		
-		//"You are on the <> team"
-		if (isHuman(p))
-		{
-			s += ChatColor.RED + "You are on the HUMAN team.";
-		}
-		else if (isZombie(p))
-		{
-			s += ChatColor.GREEN + "You are on the ZOMBIE team.";
-		}
-		else if (isSpectator(p))
-		{
-			s += ChatColor.BLUE + "You are on the SPECTATOR team.";
-		}
-		else if (isWaiting(p))
-		{
-			s += ChatColor.RED + "You are on the SPECTATOR team and " + ChatColor.YELLOW + "WAITING TO PLAY.";
-		}
-		
-		
-		
-		p.sendMessage(s);
-	}
-	
-	public boolean isSpectator(Player p)
-	{
-		if (this.getConfig().getStringList("team.spectator").contains(p.getName()))
-		{
-			return true;
-		}
-		return false;
-	}
-	
-	public boolean isWaiting(Player p)
-	{
-		if (this.getConfig().getStringList("team.waiting").contains(p.getName()))
-		{
-			return true;
-		}
-		return false;
-	}
-	
-	public boolean isHuman(Player p)
-	{
-		if (this.getConfig().getStringList("team.human").contains(p.getName()))
-		{
-			return true;
-		}
-		return false;
-	}
-	
-	public boolean isZombie(Player p)
-	{
-		if (this.getConfig().getStringList("team.zombie").contains(p.getName()))
-		{
-			return true;
-		}
-		return false;
-	}
-	
-	public boolean isInGame(Player p)
-	{
-		return (isZombie(p)||isHuman(p)||isSpectator(p)||isWaiting(p));
-	}
-	
-	
-	//Code below regarding searching and updating lists is not very optimized for all four of these
-	public void joinSpectator(Player p)
-	{
-		if (isSpectator(p))
-		{
-			p.sendMessage(ChatColor.RED + "You are already on the spectator team!");
-			return;
-		}
-		
-		for (String name: this.getConfig().getStringList("team.human"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.human", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.zombie"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.zombie", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.waiting"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.waiting", name);
-			}
-		}
-		
-		addToList("team.spectator", p.getName());
-		p.sendMessage(ChatColor.BLUE + "You have joined the Spectators!");
-	}
-	
 	public void joinHuman(Player p)
 	{
-		if (isHuman(p))
+		if (utils.isHuman(p))
 		{
 			p.sendMessage(ChatColor.RED + "You are already on the human team!");
 			return;
@@ -1009,13 +676,6 @@ public final class MCInfection extends JavaPlugin implements Listener{
 			p.teleport(l);
 		}
 		
-		for (String name: this.getConfig().getStringList("team.spectator"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.spectator", name);
-			}
-		}
 		for (String name: this.getConfig().getStringList("team.zombie"))
 		{
 			if (name.equals(p.getName()))
@@ -1043,7 +703,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	
 	public void silentJoinWaiting(Player p)
 	{
-		if (isWaiting(p))
+		if (utils.isWaiting(p))
 		{
 			p.sendMessage(ChatColor.RED + "You are already waiting to play!");
 			return;
@@ -1063,20 +723,13 @@ public final class MCInfection extends JavaPlugin implements Listener{
 				removeFromList("team.zombie", name);
 			}
 		}
-		for (String name: this.getConfig().getStringList("team.spectator"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.spectator", name);
-			}
-		}
 		
 		addToList("team.waiting", p.getName());
 	}
 	
 	public void joinZombie(Player p)
 	{
-		if (isZombie(p))
+		if (utils.isZombie(p))
 		{
 			p.sendMessage(ChatColor.RED + "You are already on the zombie team!");
 			return;
@@ -1100,13 +753,6 @@ public final class MCInfection extends JavaPlugin implements Listener{
 				removeFromList("team.human", name);
 			}
 		}
-		for (String name: this.getConfig().getStringList("team.spectator"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.spectator", name);
-			}
-		}
 		for (String name: this.getConfig().getStringList("team.waiting"))
 		{
 			if (name.equals(p.getName()))
@@ -1122,7 +768,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	
 	public void quietLeaveGame(Player p)
 	{
-		if (!(isZombie(p)||isHuman(p)||isSpectator(p)||isWaiting(p)))
+		if (!(utils.isZombie(p)||utils.isHuman(p)||utils.isWaiting(p)))
 		{
 			p.sendMessage(ChatColor.RED + "You are currently not in the game!");
 			return;
@@ -1134,13 +780,6 @@ public final class MCInfection extends JavaPlugin implements Listener{
 			{
 				p.getInventory().clear();
 				removeFromList("team.human", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.spectator"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.spectator", name);
 			}
 		}
 		for (String name: this.getConfig().getStringList("team.waiting"))
@@ -1271,11 +910,6 @@ public final class MCInfection extends JavaPlugin implements Listener{
 		
 		return new Location(p.getWorld(), x, y, z, yaw, pitch);
 		
-	}
-	
-	public Location getHoldLoc(String path, Player p)
-	{
-		return getLocFromString(this.getConfig().getString(path), p);
 	}
 	
 	public Location getSpawn(String path, Player p)
