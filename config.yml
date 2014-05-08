@@ -16,9 +16,9 @@ spawn:
     
     human:
     
-    zombiehold:
+    zombie-hold:
     
-    humanhold:
+    human-hold:
     
     leave:
     
@@ -29,7 +29,7 @@ loadout:
     
     human:
     
-potion:
+potions:
     zombie:
     
     human:

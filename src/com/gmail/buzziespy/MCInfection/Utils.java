@@ -109,16 +109,18 @@ public class Utils {
         return (isZombie(p)||isHuman(p)||isWaiting(p));
     }
     
-    public Location locFromString(String locString) {
-//        String[] coords = location.split(":");
-//        double x = Double.valueOf(coords[0]);
-//        double y = Double.valueOf(coords[1]);
-//        double z = Double.valueOf(coords[2]);
-//        World world = plugin.getServer().getWorld(coords[3]);
-//        return new Location(world, x, y, z);
+    public Location locFromString(String loc) {
+        String[] coords = loc.split(":");
+        double x = Double.valueOf(coords[0]);
+        double y = Double.valueOf(coords[1]);
+        double z = Double.valueOf(coords[2]);
+        float yaw = Float.valueOf(coords[3]);
+        float pitch = Float.valueOf(coords[4]);
+        World world = plugin.getServer().getWorld(coords[5]);
+        return new Location(world, x, y, z, yaw, pitch);
     }
     
-    public String locToString(Location locLoc) {
-        
+    public String locToString(Location loc) {
+        return (loc.getBlockX() + ":" + loc.getBlockY() + ":" + loc.getBlockZ() + ":" + Math.round(loc.getYaw()) + ":" + Math.round(loc.getPitch()) + ":" + loc.getWorld().getName());
     }
 }

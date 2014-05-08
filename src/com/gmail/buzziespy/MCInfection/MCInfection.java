@@ -63,9 +63,9 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	@Override
 	public void onDisable()
 	{
-		//save the config file
-		getLogger().info("Saving config!");
-		config.save();
+            //save the config file
+            getLogger().info("Saving config!");
+            config.save();
 	}
 	
 	/*
@@ -90,568 +90,553 @@ public final class MCInfection extends JavaPlugin implements Listener{
         
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
-		/*The player has joined the game if the player is listed in any of the four "teams" below.
-		 * Each team has spawn points saved in-game and recorded in the config file
-		 * 
-		 * Spectator: Only spectates the game; spawn point is in the stands(?)
-		 * Waiting: Spectates the game but is sorted into human/zombie team when the round starts again; 
-		 *          spawn point is shared with spectator team
-		 * Human: Most of the players start out as this; their goal is to stay alive until time runs out.  Humans who die will
-		 *        turn into zombies and be moved to the zombie side.
-		 *        Humans have a few spawn points on the map itself.
-		 * Zombie: A few players start out as this; their goal is to kill humans and convert all of them into zombies.
-		 *         Zombies have their own spawn points on the other side of the map.
-		 */
-		
-		//These fail silently for command senders that are not players
-                if (cmd.getName().equalsIgnoreCase("joinwait"))
-		{
-			Player p = null;
-			if (sender instanceof Player && args.length == 0)
-			{
-				p = (Player)sender;
-			}
-			else if (args.length == 1 && sender.hasPermission("team.changer"))
-			{
-				p = (Player)sender.getServer().getOfflinePlayer(args[0]);
-			}
-			joinWaiting(p);
-			return true;
-		}
-		else if (cmd.getName().equalsIgnoreCase("joinhum"))
-		{
-			Player p = null;
-			if (sender instanceof Player && args.length == 0)
-			{
-				p = (Player)sender;
-			}
-			else if (args.length == 1 && sender.hasPermission("team.changer"))
-			{
-				p = (Player)sender.getServer().getOfflinePlayer(args[0]);
-			}
-			joinHuman(p);
-			return true;
-		}
-		else if (cmd.getName().equalsIgnoreCase("joinzom"))
-		{
-			Player p = null;
-			if (sender instanceof Player && args.length == 0)
-			{
-				p = (Player)sender;
-			}
-			else if (args.length == 1 && sender.hasPermission("team.changer"))
-			{
-				p = (Player)sender.getServer().getOfflinePlayer(args[0]);
-			}
-			joinZombie(p);
-			return true;
-		}
-		else if (cmd.getName().equalsIgnoreCase("leavegame"))
-		{
-			Player p = null;
-			if (sender instanceof Player && args.length == 0)
-			{
-				p = (Player)sender;
-				leaveGame(p);
-			}
-			else if (args.length == 1 && sender.hasPermission("team.changer"))
-			{
-				if (sender.getServer().getOfflinePlayer(args[0]).isOnline())
-				{
-					p = (Player)sender.getServer().getOfflinePlayer(args[0]);
-					leaveGame(p);
-				}
-				else //if player in argument is not online
-				{
-					OfflinePlayer op = sender.getServer().getOfflinePlayer(args[0]);
-					removePlayerFromGame(op);
-				}
-			}
-			return true;
-		}
-		
-		//shows current teams to the player
-		else if (cmd.getName().equalsIgnoreCase("teams"))
-		{
-			if (sender instanceof Player)
-			{
-				Player p = (Player)sender;
-				playerRosterReport(p);
-			}
-			else if (sender instanceof ConsoleCommandSender)
-			{
-				utils.rosterReport();
-			}
-			return true;
-		}
-		
-		//set a spawn point for humans at the player's location
-		//this should also save the player's camera orientation, so the player should take
-		//care not to stare at walls when running this!
-		else if (cmd.getName().equalsIgnoreCase("set-human-spawn"))
-		{
-			if (sender instanceof Player)
-			{
-				Player p = (Player)sender;
-				Location l = p.getLocation();
-				double x = l.getBlockX() + 0.5;
-				double y = l.getBlockY();
-				double z = l.getBlockZ() + 0.5;
-				float pitch = l.getPitch();
-				float yaw = l.getYaw();
-				String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
-				
-				//store to spawn location list
-				addToList("spawn.human", spawnloc);
-				sender.sendMessage(ChatColor.RED + "Human spawn set! " + (int)x + "," + (int)y + "," + (int)z);
-			}
-			else if (sender instanceof ConsoleCommandSender)
-			{
-				getLogger().info("You must be in-game to run this!");
-			}
-			return true;
-		}
-		
-		//set a spawn point for zombies at the player's location
-		//this should also save the player's camera orientation, so the player should take
-		//care not to stare at walls when running this!
-		else if (cmd.getName().equalsIgnoreCase("set-zombie-spawn"))
-		{
-			if (sender instanceof Player)
-			{
-				Player p = (Player)sender;
-				Location l = p.getLocation();
-				double x = l.getBlockX() + 0.5;
-				double y = l.getBlockY();
-				double z = l.getBlockZ() + 0.5;
-				float pitch = l.getPitch();
-				float yaw = l.getYaw();
-				String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
-				
-				//store to spawn location list
-				addToList("spawn.zombie", spawnloc);
-				sender.sendMessage(ChatColor.GREEN + "Zombie spawn set! " + (int)x + "," + (int)y + "," + (int)z);
-			}
-			else if (sender instanceof ConsoleCommandSender)
-			{
-				getLogger().info("You must be in-game to run this!");
-			}
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("human-spawn"))
-		{
-			List<String> spawnloc = this.getConfig().getStringList("spawn.human");
-			sender.sendMessage(ChatColor.RED + "Human spawns:");
-			for (String loc: spawnloc)
-			{
-				int cutoff = loc.indexOf(";");
-				String coord = loc.substring(0, cutoff);
-				sender.sendMessage(coord);
-			}
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("zombie-spawn"))
-		{
-			List<String> spawnloc = this.getConfig().getStringList("spawn.zombie");
-			sender.sendMessage(ChatColor.GREEN + "Zombie spawns:");
-			for (String loc: spawnloc)
-			{
-				int cutoff = loc.indexOf(";");
-				String coord = loc.substring(0, cutoff);
-				sender.sendMessage(coord);
-			}
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("clear-human-spawn"))
-		{
-			List<String> spawnloc = null;
-			this.getConfig().set("spawn.human", spawnloc);
-			sender.sendMessage(ChatColor.RED + "Human spawns cleared!");
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("clear-zombie-spawn"))
-		{
-			List<String> spawnloc = null;
-			this.getConfig().set("spawn.zombie", spawnloc);
-			sender.sendMessage(ChatColor.GREEN + "Zombie spawns cleared!");
-			return true;
-		}
-		
-		//Set the location of a holding cell for players once they are killed.
-		//They will sit in here for the duration of a respawn timer before
-		//being returned to the map.
-		else if (cmd.getName().equalsIgnoreCase("set-human-hold"))
-		{
-			if (sender instanceof Player)
-			{
-				Player p = (Player)sender;
-				Location l = p.getLocation();
-				double x = l.getBlockX() + 0.5;
-				double y = l.getBlockY();
-				double z = l.getBlockZ() + 0.5;
-				float pitch = l.getPitch();
-				float yaw = l.getYaw();
-				String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
+            /*The player has joined the game if the player is listed in any of the four "teams" below.
+             * Each team has spawn points saved in-game and recorded in the config file
+             * 
+             * Spectator: Only spectates the game; spawn point is in the stands(?)
+             * Waiting: Spectates the game but is sorted into human/zombie team when the round starts again; 
+             *          spawn point is shared with spectator team
+             * Human: Most of the players start out as this; their goal is to stay alive until time runs out.  Humans who die will
+             *        turn into zombies and be moved to the zombie side.
+             *        Humans have a few spawn points on the map itself.
+             * Zombie: A few players start out as this; their goal is to kill humans and convert all of them into zombies.
+             *         Zombies have their own spawn points on the other side of the map.
+             */
 
-				this.getConfig().set("spawn.humanhold", spawnloc);
-				sender.sendMessage(ChatColor.RED + "Human hold set! " + (int)x + "," + (int)y + "," + (int)z);
-			}
-			else if (sender instanceof ConsoleCommandSender)
-			{
-				getLogger().info("You must be in-game to run this!");
-			}
-			return true;
-		}
-		
-		//set a spawn point for zombies at the player's location
-		//this should also save the player's camera orientation, so the player should take
-		//care not to stare at walls when running this!
-		else if (cmd.getName().equalsIgnoreCase("set-zombie-hold"))
-		{
-			if (sender instanceof Player)
-			{
-				Player p = (Player)sender;
-				Location l = p.getLocation();
-				double x = l.getBlockX() + 0.5;
-				double y = l.getBlockY();
-				double z = l.getBlockZ() + 0.5;
-				float pitch = l.getPitch();
-				float yaw = l.getYaw();
-				String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
-				
-				this.getConfig().set("spawn.zombiehold", spawnloc);
-				sender.sendMessage(ChatColor.GREEN + "Zombie hold set! " + (int)x + "," + (int)y + "," + (int)z);
-				//getLogger().info("pitch: " + l.getPitch());
-				//getLogger().info("yaw: " + l.getYaw());
-			}
-			else if (sender instanceof ConsoleCommandSender)
-			{
-				getLogger().info("You must be in-game to run this!");
-			}
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("human-hold"))
-		{
-			String spawnloc = this.getConfig().getString("spawn.humanhold");
-			sender.sendMessage(ChatColor.RED + "Human hold cell:");
-			int cutoff = spawnloc.indexOf(";");
-			String coord = spawnloc.substring(0, cutoff);
-			sender.sendMessage(coord);
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("zombie-hold"))
-		{
-			String spawnloc = this.getConfig().getString("spawn.zombiehold");
-			sender.sendMessage(ChatColor.GREEN + "Zombie hold cell:");
-			int cutoff = spawnloc.indexOf(";");
-			String coord = spawnloc.substring(0, cutoff);
-			sender.sendMessage(coord);
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("clear-human-hold"))
-		{
-			List<String> spawnloc = null;
-			this.getConfig().set("spawn.humanhold", spawnloc);
-			sender.sendMessage(ChatColor.RED + "Human hold cell cleared!");
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("clear-zombie-hold"))
-		{
-			List<String> spawnloc = null;
-			this.getConfig().set("spawn.zombiehold", spawnloc);
-			sender.sendMessage(ChatColor.GREEN + "Zombie hold cell cleared!");
-			return true;
-		}
-		
-		//Saves human loadout.  Inventory is saved as a string <armor1>,<armor2>,<armor3>,<armor4>;<1>,<2>,...,<36>.
-		//Potion effects are assumed to be permanent, so the player's existing effects will be saved and given a length
-		//of a very long time - say, 7200 seconds (2 hours).  The effect numbers and strength themselves are listed
-		//under potion.human and potion.zombie: <effect number>,<strength> (duration assumed to be a long time (2 hours))
-		else if (cmd.getName().equalsIgnoreCase("save-human-loadout"))
-		{
-			if (sender instanceof Player)
-			{
-				//save inventory
-				Player p = (Player)sender;
-				clearList("inventory.human");
-				List<ItemStack> inventory = Arrays.asList(p.getInventory().getContents());
-				this.getConfig().set("inventory.human", inventory);
-				getLogger().info(this.getConfig().getList("inventory.human").toString());
-				
-				//save armor
-				clearList("armor.human");
-				List<ItemStack> armor = Arrays.asList(p.getInventory().getArmorContents());
-				this.getConfig().set("armor.human", armor);
-				getLogger().info(this.getConfig().getList("armor.human").toString());
-				
-				
-				//clear existing loadout
-				clearList("potion.human");
-				this.getConfig().set("potion.human", p.getActivePotionEffects());
-				
-				p.sendMessage(ChatColor.GREEN + "Human loadout saved!");
-				
-			}
-			else if (sender instanceof ConsoleCommandSender)
-			{
-				getLogger().info("You must be in-game to run this!");
-			}
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("save-zombie-loadout"))
-		{
-			if (sender instanceof Player)
-			{
-				//save inventory
-				Player p = (Player)sender;
-				clearList("inventory.zombie");
-				List<ItemStack> inventory = Arrays.asList(p.getInventory().getContents());
-				this.getConfig().set("inventory.zombie", inventory);
-				
-				//save armor
-				clearList("armor.zombie");
-				List<ItemStack> armor = Arrays.asList(p.getInventory().getArmorContents());
-				this.getConfig().set("armor.zombie", armor);
-				getLogger().info(this.getConfig().getList("armor.zombie").toString());
-				
-				clearList("potion.zombie");
-				this.getConfig().set("potion.zombie", p.getActivePotionEffects());
-				
-				p.sendMessage(ChatColor.GREEN + "Zombie loadout saved!");
-			}
-			else if (sender instanceof ConsoleCommandSender)
-			{
-				getLogger().info("You must be in-game to run this!");
-			}
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("human-loadout"))
-		{
-			sender.sendMessage(ChatColor.RED + "Human inventory:");
-			int index = 0;
-			while (index < 36)
-			{
-				ItemStack i = (ItemStack)(this.getConfig().getList("inventory.human").get(index));
-				if (i != null)
-				{
-					sender.sendMessage(ChatColor.LIGHT_PURPLE + i.getType().toString() + " x" + i.getAmount());
-				}
-				index++;
-			}
-			sender.sendMessage(ChatColor.RED + "Human armor:");
-			index = 0;
-			while (index < 4)
-			{
-				ItemStack i = (ItemStack)(this.getConfig().getList("armor.human").get(index));
-				if (i != null)
-				{
-					sender.sendMessage(ChatColor.LIGHT_PURPLE + i.getType().toString());
-				}
-				index++;
-			}
-			sender.sendMessage(ChatColor.RED + "Human potion effects:");
-			//assuming all entries are PotionEffects
-			for (Object entry: this.getConfig().getList("potion.human"))
-			{
-				PotionEffect pe = (PotionEffect)entry;
-				sender.sendMessage(ChatColor.LIGHT_PURPLE + pe.getType().getName() + " " + (pe.getAmplifier()+1));
-			}
-			return true;
-		}
+            //These fail silently for command senders that are not players
+            if (cmd.getName().equalsIgnoreCase("joinwait"))
+            {
+                Player p = null;
+                if (sender instanceof Player && args.length == 0)
+                {
+                    p = (Player)sender;
+                }
+                else if (args.length == 1 && sender.hasPermission("infect.admin"))
+                {
+                    p = (Player)sender.getServer().getOfflinePlayer(args[0]);
+                }
+                joinWaiting(p);
+                return true;
+            }
+            else if (cmd.getName().equalsIgnoreCase("joinhum"))
+            {
+                Player p = null;
+                if (sender instanceof Player && args.length == 0)
+                {
+                    p = (Player)sender;
+                }
+                else if (args.length == 1 && sender.hasPermission("infect.admin"))
+                {
+                    p = (Player)sender.getServer().getOfflinePlayer(args[0]);
+                }
+                joinHuman(p);
+                return true;
+            }
+            else if (cmd.getName().equalsIgnoreCase("joinzom"))
+            {
+                Player p = null;
+                if (sender instanceof Player && args.length == 0)
+                {
+                    p = (Player)sender;
+                }
+                else if (args.length == 1 && sender.hasPermission("infect.admin"))
+                {
+                    p = (Player)sender.getServer().getOfflinePlayer(args[0]);
+                }
+                joinZombie(p);
+                return true;
+            }
+            else if (cmd.getName().equalsIgnoreCase("leavegame"))
+            {
+                Player p = null;
+                if (sender instanceof Player && args.length == 0)
+                {
+                    p = (Player)sender;
+                    leaveGame(p);
+                }
+                else if (args.length == 1 && sender.hasPermission("infect.admin"))
+                {
+                    if (sender.getServer().getOfflinePlayer(args[0]).isOnline())
+                    {
+                        p = (Player)sender.getServer().getOfflinePlayer(args[0]);
+                        leaveGame(p);
+                    }
+                    else //if player in argument is not online
+                    {
+                        OfflinePlayer op = sender.getServer().getOfflinePlayer(args[0]);
+                        removePlayerFromGame(op);
+                    }
+                }
+                return true;
+            }
 
-		else if (cmd.getName().equalsIgnoreCase("zombie-loadout"))
-		{
-			sender.sendMessage(ChatColor.GREEN + "Zombie inventory:");
-			int index = 0;
-			while (index < 36)
-			{
-				ItemStack i = (ItemStack)this.getConfig().getList("inventory.zombie").get(index);
-				if (i != null)
-				{
-					sender.sendMessage(ChatColor.AQUA + i.getType().toString() + " x" + i.getAmount());
-				}
-				index++;
-			}
-			sender.sendMessage(ChatColor.RED + "Zombie armor:");
-			index = 0;
-			while (index < 4)
-			{
-				ItemStack i = (ItemStack)(this.getConfig().getList("armor.zombie").get(index));
-				if (i != null)
-				{
-					sender.sendMessage(ChatColor.LIGHT_PURPLE + i.getType().toString());
-				}
-				index++;
-			}
-			sender.sendMessage(ChatColor.GREEN + "Zombie potion effects:");
-			for (Object entry: this.getConfig().getList("potion.zombie"))
-			{
-				PotionEffect pe = (PotionEffect)entry;
-				sender.sendMessage(ChatColor.LIGHT_PURPLE + pe.getType().getName() + " " + (pe.getAmplifier()+1));
-			}
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("save-leavespawn"))
-		{
-			if (sender instanceof Player)
-			{
-				Player p = (Player)sender;
-				Location l = p.getLocation();
-				double x = l.getBlockX() + 0.5;
-				double y = l.getBlockY();
-				double z = l.getBlockZ() + 0.5;
-				float pitch = l.getPitch();
-				float yaw = l.getYaw();
-				String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
+            //shows current teams to the player
+            else if (cmd.getName().equalsIgnoreCase("teams"))
+            {
+                if (sender instanceof Player)
+                {
+                    Player p = (Player)sender;
+                    utils.playerRosterReport(p);
+                }
+                else if (sender instanceof ConsoleCommandSender)
+                {
+                    utils.rosterReport();
+                }
+                return true;
+            }
 
-				this.getConfig().set("spawn.leave", spawnloc);
-				
-				//List<String> loc = this.getConfig().getStringList("spawn.wait");
-				//loc.clear();
-				//loc.add(spawnloc);
-				sender.sendMessage(ChatColor.RED + "Leave point set! " + (int)x + "," + (int)y + "," + (int)z);
-			}
-			else if (sender instanceof ConsoleCommandSender)
-			{
-				getLogger().info("You must be in-game to run this!");
-			}
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("leavespawn"))
-		{
-			String spawnloc = this.getConfig().getString("spawn.leave");
-			sender.sendMessage(ChatColor.RED + "Leave point:");
-			int cutoff = spawnloc.indexOf(";");
-			String coord = spawnloc.substring(0, cutoff);
-			sender.sendMessage(coord);
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("save-waitspawn"))
-		{
-			if (sender instanceof Player)
-			{
-				Player p = (Player)sender;
-				Location l = p.getLocation();
-				double x = l.getBlockX() + 0.5;
-				double y = l.getBlockY();
-				double z = l.getBlockZ() + 0.5;
-				float pitch = l.getPitch();
-				float yaw = l.getYaw();
-				String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
-				this.getConfig().set("spawn.wait", spawnloc);
+            //set a spawn point for humans at the player's location
+            //this should also save the player's camera orientation, so the player should take
+            //care not to stare at walls when running this!
+            else if (cmd.getName().equalsIgnoreCase("set-human-spawn"))
+            {
+                if (sender instanceof Player)
+                {
+                    Player p = (Player)sender;
+                    Location l = p.getLocation();
 
-				//List<String> loc = this.getConfig().getStringList("spawn.wait");
-				//loc.clear();
-				//loc.add(spawnloc);
-				sender.sendMessage(ChatColor.RED + "Wait point set! " + (int)x + "," + (int)y + "," + (int)z);
-			}
-			else if (sender instanceof ConsoleCommandSender)
-			{
-				getLogger().info("You must be in-game to run this!");
-			}
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("waitspawn"))
-		{
-			String spawnloc = this.getConfig().getString("spawn.wait");
-			sender.sendMessage(ChatColor.RED + "Wait point:");
-			int cutoff = spawnloc.indexOf(";");
-			String coord = spawnloc.substring(0, cutoff);
-			sender.sendMessage(coord);
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("joingame"))
-		{
-			if (sender instanceof Player)
-			{
-				Player p = (Player)sender;
-				if (!isInGame(p))
-				{
-					p.getInventory().clear();
-					if (p.getActivePotionEffects() != null)
-					{
-						for (PotionEffect pe: p.getActivePotionEffects())
-						{
-							p.removePotionEffect(pe.getType());
-						}
-					}
-					
-					//send player to wait point
-					String locstring = this.getConfig().getString("spawn.wait");
-					if (locstring == null || locstring.length() == 0)
-					{
-						p.sendMessage(ChatColor.RED + "Tell your admin to save a wait point first!");
-					}
-					else
-					{
-						Location l = getLocFromString(locstring, p);
-						p.teleport(l);
-						joinWaiting(p);
-					}
-				}
-				else
-				{
-					p.sendMessage(ChatColor.YELLOW + "You're already on a team!");
-					playerRosterReport(p);
-				}
-				return true;
-			}
-			
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("infection-start"))
-		{
-			if (args.length != 0 && args.length != 1)
-			{
-				sender.sendMessage(ChatColor.RED + "Usage: /infection-start [gameTime]");
-				return true;
-			}
-			if (args.length == 0)
-			{
-				startGame(sender, DEFAULT_GAME_TIME);  //default game time is 1 minute
-				getLogger().info("Starting new Infection game for " + DEFAULT_GAME_TIME + " seconds.");
-			}
-			else if (args.length == 1)
-			{
-				startGame(sender, Integer.parseInt(args[0])); //NOTE: This breaks if argument is not an integer!
+                    //store to spawn location list
+                    config.SPAWN_HUMAN.add(l);
+                    sender.sendMessage(config.HUMAN_TEXT + "Human spawn set! " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+                }
+                else if (sender instanceof ConsoleCommandSender)
+                {
+                    getLogger().info("You must be in-game to run this!");
+                }
+                return true;
+            }
 
-				getLogger().info("Starting new Infection game for " + args[0] + " seconds.");
-			}
-			return true;
-		}
-		
-		else if (cmd.getName().equalsIgnoreCase("infection-end"))
-		{
-			if (gameActive)
-			{
-				getServer().broadcastMessage(ChatColor.RED + "The game has been ended!");
-				gameActive = false;
-				//Stop game from ending as scheduled if the game has force-ended
-				gameEnd.cancel();
-			}
-			else
-			{
-				sender.sendMessage(ChatColor.RED + "The game is already over!");
-			}
-			return true;
-		}
-		
-		return false;
+            //set a spawn point for zombies at the player's location
+            //this should also save the player's camera orientation, so the player should take
+            //care not to stare at walls when running this!
+            else if (cmd.getName().equalsIgnoreCase("set-zombie-spawn"))
+            {
+                    if (sender instanceof Player)
+                    {
+                            Player p = (Player)sender;
+                            Location l = p.getLocation();
+
+                            //store to spawn location list
+                            config.SPAWN_ZOMBIE.add(l);
+                            sender.sendMessage(config.ZOMBIE_TEXT + "Zombie spawn set! " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+                    }
+                    else if (sender instanceof ConsoleCommandSender)
+                    {
+                            getLogger().info("You must be in-game to run this!");
+                    }
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("human-spawn"))
+            {       
+                    List<String> spawnloc = this.getConfig().getStringList("spawn.human");
+                    sender.sendMessage(ChatColor.RED + "Human spawns:");
+                    for (String loc: spawnloc)
+                    {
+                            int cutoff = loc.indexOf(";");
+                            String coord = loc.substring(0, cutoff);
+                            sender.sendMessage(coord);
+                    }
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("zombie-spawn"))
+            {
+                    List<String> spawnloc = this.getConfig().getStringList("spawn.zombie");
+                    sender.sendMessage(ChatColor.GREEN + "Zombie spawns:");
+                    for (String loc: spawnloc)
+                    {
+                            int cutoff = loc.indexOf(";");
+                            String coord = loc.substring(0, cutoff);
+                            sender.sendMessage(coord);
+                    }
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("clear-human-spawn"))
+            {
+                config.SPAWN_HUMAN = null;
+                sender.sendMessage(config.HUMAN_TEXT + "Human spawns cleared!");
+                return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("clear-zombie-spawn"))
+            {
+                config.SPAWN_ZOMBIE = null;
+                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie spawns cleared!");
+                return true;
+            }
+
+            //Set the location of a holding cell for players once they are killed.
+            //They will sit in here for the duration of a respawn timer before
+            //being returned to the map.
+            else if (cmd.getName().equalsIgnoreCase("set-human-hold"))
+            {
+                    if (sender instanceof Player)
+                    {
+                            Player p = (Player)sender;
+                            Location l = p.getLocation();
+                            double x = l.getBlockX() + 0.5;
+                            double y = l.getBlockY();
+                            double z = l.getBlockZ() + 0.5;
+                            float pitch = l.getPitch();
+                            float yaw = l.getYaw();
+                            String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
+
+                            this.getConfig().set("spawn.humanhold", spawnloc);
+                            sender.sendMessage(ChatColor.RED + "Human hold set! " + (int)x + "," + (int)y + "," + (int)z);
+                    }
+                    else if (sender instanceof ConsoleCommandSender)
+                    {
+                            getLogger().info("You must be in-game to run this!");
+                    }
+                    return true;
+            }
+
+            //set a spawn point for zombies at the player's location
+            //this should also save the player's camera orientation, so the player should take
+            //care not to stare at walls when running this!
+            else if (cmd.getName().equalsIgnoreCase("set-zombie-hold"))
+            {
+                    if (sender instanceof Player)
+                    {
+                            Player p = (Player)sender;
+                            Location l = p.getLocation();
+                            double x = l.getBlockX() + 0.5;
+                            double y = l.getBlockY();
+                            double z = l.getBlockZ() + 0.5;
+                            float pitch = l.getPitch();
+                            float yaw = l.getYaw();
+                            String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
+
+                            this.getConfig().set("spawn.zombiehold", spawnloc);
+                            sender.sendMessage(ChatColor.GREEN + "Zombie hold set! " + (int)x + "," + (int)y + "," + (int)z);
+                            //getLogger().info("pitch: " + l.getPitch());
+                            //getLogger().info("yaw: " + l.getYaw());
+                    }
+                    else if (sender instanceof ConsoleCommandSender)
+                    {
+                            getLogger().info("You must be in-game to run this!");
+                    }
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("human-hold"))
+            {
+                    String spawnloc = this.getConfig().getString("spawn.humanhold");
+                    sender.sendMessage(ChatColor.RED + "Human hold cell:");
+                    int cutoff = spawnloc.indexOf(";");
+                    String coord = spawnloc.substring(0, cutoff);
+                    sender.sendMessage(coord);
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("zombie-hold"))
+            {
+                    String spawnloc = this.getConfig().getString("spawn.zombiehold");
+                    sender.sendMessage(ChatColor.GREEN + "Zombie hold cell:");
+                    int cutoff = spawnloc.indexOf(";");
+                    String coord = spawnloc.substring(0, cutoff);
+                    sender.sendMessage(coord);
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("clear-human-hold"))
+            {
+                config.SPAWN_HUMAN_HOLD = null;
+                sender.sendMessage(config.HUMAN_TEXT + "Human hold cell cleared!");
+                return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("clear-zombie-hold"))
+            {
+                config.SPAWN_ZOMBIE_HOLD = null;
+                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie hold cell cleared!");
+                return true;
+            }
+
+            //Saves human loadout.  Inventory is saved as a string <armor1>,<armor2>,<armor3>,<armor4>;<1>,<2>,...,<36>.
+            //Potion effects are assumed to be permanent, so the player's existing effects will be saved and given a length
+            //of a very long time - say, 7200 seconds (2 hours).  The effect numbers and strength themselves are listed
+            //under potion.human and potion.zombie: <effect number>,<strength> (duration assumed to be a long time (2 hours))
+            else if (cmd.getName().equalsIgnoreCase("save-human-loadout"))
+            {
+                    if (sender instanceof Player)
+                    {
+                            //save inventory
+                            Player p = (Player)sender;
+                            clearList("inventory.human");
+                            List<ItemStack> inventory = Arrays.asList(p.getInventory().getContents());
+                            this.getConfig().set("inventory.human", inventory);
+                            getLogger().info(this.getConfig().getList("inventory.human").toString());
+
+                            //save armor
+                            clearList("armor.human");
+                            List<ItemStack> armor = Arrays.asList(p.getInventory().getArmorContents());
+                            this.getConfig().set("armor.human", armor);
+                            getLogger().info(this.getConfig().getList("armor.human").toString());
+
+
+                            //clear existing loadout
+                            clearList("potion.human");
+                            this.getConfig().set("potion.human", p.getActivePotionEffects());
+
+                            p.sendMessage(ChatColor.GREEN + "Human loadout saved!");
+
+                    }
+                    else if (sender instanceof ConsoleCommandSender)
+                    {
+                            getLogger().info("You must be in-game to run this!");
+                    }
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("save-zombie-loadout"))
+            {
+                    if (sender instanceof Player)
+                    {
+                            //save inventory
+                            Player p = (Player)sender;
+                            clearList("inventory.zombie");
+                            List<ItemStack> inventory = Arrays.asList(p.getInventory().getContents());
+                            this.getConfig().set("inventory.zombie", inventory);
+
+                            //save armor
+                            clearList("armor.zombie");
+                            List<ItemStack> armor = Arrays.asList(p.getInventory().getArmorContents());
+                            this.getConfig().set("armor.zombie", armor);
+                            getLogger().info(this.getConfig().getList("armor.zombie").toString());
+
+                            clearList("potion.zombie");
+                            this.getConfig().set("potion.zombie", p.getActivePotionEffects());
+
+                            p.sendMessage(ChatColor.GREEN + "Zombie loadout saved!");
+                    }
+                    else if (sender instanceof ConsoleCommandSender)
+                    {
+                            getLogger().info("You must be in-game to run this!");
+                    }
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("human-loadout"))
+            {
+                    sender.sendMessage(ChatColor.RED + "Human inventory:");
+                    int index = 0;
+                    while (index < 36)
+                    {
+                            ItemStack i = (ItemStack)(this.getConfig().getList("inventory.human").get(index));
+                            if (i != null)
+                            {
+                                    sender.sendMessage(ChatColor.LIGHT_PURPLE + i.getType().toString() + " x" + i.getAmount());
+                            }
+                            index++;
+                    }
+                    sender.sendMessage(ChatColor.RED + "Human armor:");
+                    index = 0;
+                    while (index < 4)
+                    {
+                            ItemStack i = (ItemStack)(this.getConfig().getList("armor.human").get(index));
+                            if (i != null)
+                            {
+                                    sender.sendMessage(ChatColor.LIGHT_PURPLE + i.getType().toString());
+                            }
+                            index++;
+                    }
+                    sender.sendMessage(ChatColor.RED + "Human potion effects:");
+                    //assuming all entries are PotionEffects
+                    for (Object entry: this.getConfig().getList("potion.human"))
+                    {
+                            PotionEffect pe = (PotionEffect)entry;
+                            sender.sendMessage(ChatColor.LIGHT_PURPLE + pe.getType().getName() + " " + (pe.getAmplifier()+1));
+                    }
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("zombie-loadout"))
+            {
+                    sender.sendMessage(ChatColor.GREEN + "Zombie inventory:");
+                    int index = 0;
+                    while (index < 36)
+                    {
+                            ItemStack i = (ItemStack)this.getConfig().getList("inventory.zombie").get(index);
+                            if (i != null)
+                            {
+                                    sender.sendMessage(ChatColor.AQUA + i.getType().toString() + " x" + i.getAmount());
+                            }
+                            index++;
+                    }
+                    sender.sendMessage(ChatColor.RED + "Zombie armor:");
+                    index = 0;
+                    while (index < 4)
+                    {
+                            ItemStack i = (ItemStack)(this.getConfig().getList("armor.zombie").get(index));
+                            if (i != null)
+                            {
+                                    sender.sendMessage(ChatColor.LIGHT_PURPLE + i.getType().toString());
+                            }
+                            index++;
+                    }
+                    sender.sendMessage(ChatColor.GREEN + "Zombie potion effects:");
+                    for (Object entry: this.getConfig().getList("potion.zombie"))
+                    {
+                            PotionEffect pe = (PotionEffect)entry;
+                            sender.sendMessage(ChatColor.LIGHT_PURPLE + pe.getType().getName() + " " + (pe.getAmplifier()+1));
+                    }
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("save-leavespawn"))
+            {
+                    if (sender instanceof Player)
+                    {
+                            Player p = (Player)sender;
+                            Location l = p.getLocation();
+                            double x = l.getBlockX() + 0.5;
+                            double y = l.getBlockY();
+                            double z = l.getBlockZ() + 0.5;
+                            float pitch = l.getPitch();
+                            float yaw = l.getYaw();
+                            String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
+
+                            this.getConfig().set("spawn.leave", spawnloc);
+
+                            //List<String> loc = this.getConfig().getStringList("spawn.wait");
+                            //loc.clear();
+                            //loc.add(spawnloc);
+                            sender.sendMessage(ChatColor.RED + "Leave point set! " + (int)x + "," + (int)y + "," + (int)z);
+                    }
+                    else if (sender instanceof ConsoleCommandSender)
+                    {
+                            getLogger().info("You must be in-game to run this!");
+                    }
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("leavespawn"))
+            {
+                    String spawnloc = this.getConfig().getString("spawn.leave");
+                    sender.sendMessage(ChatColor.RED + "Leave point:");
+                    int cutoff = spawnloc.indexOf(";");
+                    String coord = spawnloc.substring(0, cutoff);
+                    sender.sendMessage(coord);
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("save-waitspawn"))
+            {
+                    if (sender instanceof Player)
+                    {
+                            Player p = (Player)sender;
+                            Location l = p.getLocation();
+                            double x = l.getBlockX() + 0.5;
+                            double y = l.getBlockY();
+                            double z = l.getBlockZ() + 0.5;
+                            float pitch = l.getPitch();
+                            float yaw = l.getYaw();
+                            String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
+                            this.getConfig().set("spawn.wait", spawnloc);
+
+                            //List<String> loc = this.getConfig().getStringList("spawn.wait");
+                            //loc.clear();
+                            //loc.add(spawnloc);
+                            sender.sendMessage(ChatColor.RED + "Wait point set! " + (int)x + "," + (int)y + "," + (int)z);
+                    }
+                    else if (sender instanceof ConsoleCommandSender)
+                    {
+                            getLogger().info("You must be in-game to run this!");
+                    }
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("waitspawn"))
+            {
+                    String spawnloc = this.getConfig().getString("spawn.wait");
+                    sender.sendMessage(ChatColor.RED + "Wait point:");
+                    int cutoff = spawnloc.indexOf(";");
+                    String coord = spawnloc.substring(0, cutoff);
+                    sender.sendMessage(coord);
+                    return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("joingame"))
+            {
+                if (sender instanceof Player)
+                {
+                    Player p = (Player)sender;
+                    if (!utils.isInGame(p))
+                    {
+                        p.getInventory().clear();
+                        if (p.getActivePotionEffects() != null)
+                        {
+                            for (PotionEffect pe: p.getActivePotionEffects())
+                            {
+                                p.removePotionEffect(pe.getType());
+                            }
+                        }
+
+                        //send player to wait point
+                        if (config.SPAWN_WAIT == null || config.SPAWN_WAIT.length() == 0)
+                        {
+                            p.sendMessage(ChatColor.RED + "Tell your admin to save a wait point first!");
+                        }
+                        else
+                        {
+                            p.teleport(config.SPAWN_WAIT);
+                            joinWaiting(p);
+                        }
+                    }
+                    else
+                    {
+                        p.sendMessage(ChatColor.YELLOW + "You're already on a team!");
+                        utils.playerRosterReport(p);
+                    }
+                    return true;
+                }
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("infection-start"))
+            {
+                if (args.length != 0 && args.length != 1)
+                {
+                    return false;
+                }
+                if (args.length == 0)
+                {
+                    startGame(sender, config.GAME_TIME);  //default game time is 1 minute
+                    getLogger().info("Starting new Infection game for " + config.GAME_TIME + " seconds.");
+                }
+                else if (args.length == 1)
+                {
+                    try {
+                        startGame(sender, Integer.parseInt(args[0]));
+                    } catch(NumberFormatException e) {
+                        sender.sendMessage("Game time specified must be a valid integer.");
+                        return false;
+                    }
+
+                    getLogger().info("Starting new Infection game for " + args[0] + " seconds.");
+                }
+                return true;
+            }
+
+            else if (cmd.getName().equalsIgnoreCase("infection-end"))
+            {
+                if (gameActive)
+                {
+                    getServer().broadcastMessage(ChatColor.RED + "The game has been ended!");
+                    gameActive = false;
+                    //Stop game from ending as scheduled if the game has force-ended
+                    gameEnd.cancel();
+                }
+                else
+                {
+                    sender.sendMessage(ChatColor.RED + "The game is already over!");
+                }
+                return true;
+            }
+
+            return false;
 	}
 	
 	//TODO

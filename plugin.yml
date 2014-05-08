@@ -144,22 +144,10 @@ commands:
        
     infection-start:
        description: Starts the game.
-       usage: /infection-start
+       usage: /infection-start [gameTime]
        permission: infect.admin
        
     infection-end:
        description: Force-end the game.
        usage: /infection-end
        permission: infect.admin
-       
-    
-permissions:
-    team.*:
-      description: Checks if team swapping is allowed.
-      children:
-         team.changer: true
-         team.joinleave: true
-   
-    team.changer:
-      description: Allows force-changing of teams
-      default: op
