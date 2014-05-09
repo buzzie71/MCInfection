@@ -1,10 +1,8 @@
 package com.gmail.buzziespy.MCInfection;
 
-//import java.util.Collection;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-//import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,14 +11,11 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-//import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
-//import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scheduler.BukkitTask;
 
 public final class MCInfection extends JavaPlugin implements Listener{
@@ -397,108 +392,68 @@ public final class MCInfection extends JavaPlugin implements Listener{
 
             else if (cmd.getName().equalsIgnoreCase("zombie-loadout"))
             {
-                    sender.sendMessage(ChatColor.GREEN + "Zombie inventory:");
-                    int index = 0;
-                    while (index < 36)
-                    {
-                            ItemStack i = (ItemStack)this.getConfig().getList("inventory.zombie").get(index);
-                            if (i != null)
-                            {
-                                    sender.sendMessage(ChatColor.AQUA + i.getType().toString() + " x" + i.getAmount());
-                            }
-                            index++;
-                    }
-                    sender.sendMessage(ChatColor.RED + "Zombie armor:");
-                    index = 0;
-                    while (index < 4)
-                    {
-                            ItemStack i = (ItemStack)(this.getConfig().getList("armor.zombie").get(index));
-                            if (i != null)
-                            {
-                                    sender.sendMessage(ChatColor.LIGHT_PURPLE + i.getType().toString());
-                            }
-                            index++;
-                    }
-                    sender.sendMessage(ChatColor.GREEN + "Zombie potion effects:");
-                    for (Object entry: this.getConfig().getList("potion.zombie"))
-                    {
-                            PotionEffect pe = (PotionEffect)entry;
-                            sender.sendMessage(ChatColor.LIGHT_PURPLE + pe.getType().getName() + " " + (pe.getAmplifier()+1));
-                    }
-                    return true;
+                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie inventory:");
+                for(ItemStack item : config.LOADOUT_ZOMBIE_INVEN) {
+                    sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name() + " x" + item.getAmount());
+                }
+                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie armor:");
+                for(ItemStack item : config.LOADOUT_ZOMBIE_ARMOR) {
+                    sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name());
+                }
+                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie potion effects:");
+                for(PotionEffect effect : config.LOADOUT_ZOMBIE_POTIONS) {
+                    sender.sendMessage(ChatColor.LIGHT_PURPLE + effect.getType().getName() + " " + (effect.getAmplifier()+1));
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("save-leavespawn"))
             {
-                    if (sender instanceof Player)
-                    {
-                            Player p = (Player)sender;
-                            Location l = p.getLocation();
-                            double x = l.getBlockX() + 0.5;
-                            double y = l.getBlockY();
-                            double z = l.getBlockZ() + 0.5;
-                            float pitch = l.getPitch();
-                            float yaw = l.getYaw();
-                            String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
+                if (sender instanceof Player)
+                {
+                    Player p = (Player)sender;
+                    Location l = p.getLocation();
+                    config.SPAWN_LEAVE = l;
 
-                            this.getConfig().set("spawn.leave", spawnloc);
-
-                            //List<String> loc = this.getConfig().getStringList("spawn.wait");
-                            //loc.clear();
-                            //loc.add(spawnloc);
-                            sender.sendMessage(ChatColor.RED + "Leave point set! " + (int)x + "," + (int)y + "," + (int)z);
-                    }
-                    else if (sender instanceof ConsoleCommandSender)
-                    {
-                            getLogger().info("You must be in-game to run this!");
-                    }
-                    return true;
+                    sender.sendMessage(ChatColor.RED + "Leave point set! " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+                }
+                else if (sender instanceof ConsoleCommandSender)
+                {
+                    getLogger().info("You must be in-game to run this!");
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("leavespawn"))
             {
-                    String spawnloc = this.getConfig().getString("spawn.leave");
                     sender.sendMessage(ChatColor.RED + "Leave point:");
-                    int cutoff = spawnloc.indexOf(";");
-                    String coord = spawnloc.substring(0, cutoff);
-                    sender.sendMessage(coord);
+                    Location loc = config.SPAWN_LEAVE;
+                    sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
                     return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("save-waitspawn"))
             {
-                    if (sender instanceof Player)
-                    {
-                            Player p = (Player)sender;
-                            Location l = p.getLocation();
-                            double x = l.getBlockX() + 0.5;
-                            double y = l.getBlockY();
-                            double z = l.getBlockZ() + 0.5;
-                            float pitch = l.getPitch();
-                            float yaw = l.getYaw();
-                            String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
-                            this.getConfig().set("spawn.wait", spawnloc);
-
-                            //List<String> loc = this.getConfig().getStringList("spawn.wait");
-                            //loc.clear();
-                            //loc.add(spawnloc);
-                            sender.sendMessage(ChatColor.RED + "Wait point set! " + (int)x + "," + (int)y + "," + (int)z);
-                    }
-                    else if (sender instanceof ConsoleCommandSender)
-                    {
-                            getLogger().info("You must be in-game to run this!");
-                    }
-                    return true;
+                if (sender instanceof Player)
+                {
+                    Player p = (Player)sender;
+                    Location l = p.getLocation();
+                    config.SPAWN_WAIT = l;
+                    sender.sendMessage(ChatColor.RED + "Leave point set! " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+                }
+                else if (sender instanceof ConsoleCommandSender)
+                {
+                    getLogger().info("You must be in-game to run this!");
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("waitspawn"))
             {
-                    String spawnloc = this.getConfig().getString("spawn.wait");
-                    sender.sendMessage(ChatColor.RED + "Wait point:");
-                    int cutoff = spawnloc.indexOf(";");
-                    String coord = spawnloc.substring(0, cutoff);
-                    sender.sendMessage(coord);
-                    return true;
+                sender.sendMessage(ChatColor.RED + "Wait point:");
+                Location loc = config.SPAWN_WAIT;
+                sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("joingame"))
@@ -586,482 +541,299 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	
 	public void joinHuman(Player p)
 	{
-		if (utils.isHuman(p))
-		{
-			p.sendMessage(ChatColor.RED + "You are already on the human team!");
-			return;
-		}
-		
-		Location l = getSpawn("spawn.human", p);
-		if (l == null)
-		{
-			p.sendMessage("ERROR: Tell your admin to save human spawn points!");
-			p.teleport((Location)this.getConfig().get("spawn.wait"));
-		}
-		else
-		{
-			p.teleport(l);
-		}
-		
-		for (String name: this.getConfig().getStringList("team.zombie"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.zombie", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.waiting"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.waiting", name);
-			}
-		}
-		addToList("team.human", p.getName());
-		applyHumanLoadout(p);
-		p.sendMessage(ChatColor.RED + "You have joined the Humans!");
+            if (utils.isHuman(p))
+            {
+                p.sendMessage(ChatColor.RED + "You are already on the human team!");
+                return;
+            }
+
+            Location l = utils.getRandomSpawn(config.SPAWN_HUMAN);
+            if (l == null)
+            {
+                p.sendMessage("ERROR: Tell your admin to save human spawn points!");
+                p.teleport(config.SPAWN_WAIT);
+            }
+            else
+            {
+                p.teleport(l);
+            }
+
+            for (String name: config.TEAM_ZOMBIE)
+            {
+                if (name.equals(p.getName()))
+                {
+                    config.TEAM_ZOMBIE.remove(name);
+                }
+            }
+            for (String name: config.TEAM_WAITING)
+            {
+                if (name.equals(p.getName()))
+                {
+                    config.TEAM_WAITING.remove(name);
+                }
+            }
+            config.TEAM_HUMAN.add(p.getName());
+            utils.applyHumanLoadout(p);
+            p.sendMessage(config.HUMAN_TEXT + "You have joined the Humans!");
 	}
+        
+        public void silentJoinWaiting(Player p)
+        {
+            if (utils.isWaiting(p))
+            {
+                p.sendMessage(ChatColor.RED + "You are already waiting to play!");
+                return;
+            }
+            
+            for(String name : config.TEAM_HUMAN) {
+                if(name.equals(p.getName())) {
+                    config.TEAM_HUMAN.remove(name);
+                }
+            }
+            
+            for(String name : config.TEAM_ZOMBIE) {
+                if(name.equals(p.getName())) {
+                    config.TEAM_ZOMBIE.remove(name);
+                }
+            }
+            
+            config.TEAM_WAITING.add(p.getName());
+            
+        }
 	
 	public void joinWaiting(Player p)
 	{
-		silentJoinWaiting(p);
-		p.sendMessage(ChatColor.YELLOW + "You are now waiting to play!");
-	}
-	
-	public void silentJoinWaiting(Player p)
-	{
-		if (utils.isWaiting(p))
-		{
-			p.sendMessage(ChatColor.RED + "You are already waiting to play!");
-			return;
-		}
-		
-		for (String name: this.getConfig().getStringList("team.human"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.human", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.zombie"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.zombie", name);
-			}
-		}
-		
-		addToList("team.waiting", p.getName());
-	}
+            silentJoinWaiting(p);
+            p.sendMessage(ChatColor.YELLOW + "You are now waiting to play!");
+        }
 	
 	public void joinZombie(Player p)
 	{
-		if (utils.isZombie(p))
-		{
-			p.sendMessage(ChatColor.RED + "You are already on the zombie team!");
-			return;
-		}
-		
-		Location l = getSpawn("spawn.zombie", p);
-		if (l == null)
-		{
-			p.sendMessage("ERROR: Tell your admin to save human spawn points!");
-			p.teleport((Location)this.getConfig().get("spawn.wait"));
-		}
-		else
-		{
-			p.teleport(l);
-		}
-		
-		for (String name: this.getConfig().getStringList("team.human"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.human", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.waiting"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.waiting", name);
-			}
-		}
-		
-		addToList("team.zombie", p.getName());
-		applyZombieLoadout(p);
-		p.sendMessage(ChatColor.GREEN + "You have joined the Zombies!");
+            if (utils.isZombie(p))
+            {
+                p.sendMessage(ChatColor.RED + "You are already on the zombie team!");
+                return;
+            }
+
+            Location l = utils.getRandomSpawn(config.SPAWN_ZOMBIE);
+            if (l == null)
+            {
+                p.sendMessage("ERROR: Tell your admin to save human spawn points!");
+                p.teleport(config.SPAWN_WAIT);
+            }
+            else
+            {
+                p.teleport(l);
+            }
+            
+            for(String name : config.TEAM_HUMAN) {
+                if(name.equals(p.getName())) {
+                    config.TEAM_HUMAN.remove(name);
+                }
+            }
+            
+            for(String name : config.TEAM_WAITING) {
+                if(name.equals(p.getName())) {
+                    config.TEAM_WAITING.remove(name);
+                }
+            }
+
+            config.TEAM_ZOMBIE.add(p.getName());
+            utils.applyZombieLoadout(p);
+            p.sendMessage(config.ZOMBIE_TEXT + "You have joined the Zombies!");
 	}
 	
 	public void quietLeaveGame(Player p)
 	{
-		if (!(utils.isZombie(p)||utils.isHuman(p)||utils.isWaiting(p)))
-		{
-			p.sendMessage(ChatColor.RED + "You are currently not in the game!");
-			return;
-		}
-		
-		for (String name: this.getConfig().getStringList("team.human"))
-		{
-			if (name.equals(p.getName()))
-			{
-				p.getInventory().clear();
-				removeFromList("team.human", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.waiting"))
-		{
-			if (name.equals(p.getName()))
-			{
-				removeFromList("team.waiting", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.zombie"))
-		{
-			if (name.equals(p.getName()))
-			{
-				p.getInventory().clear();
-				removeFromList("team.zombie", name);
-			}
-		}
+            if (!(utils.isZombie(p)||utils.isHuman(p)||utils.isWaiting(p)))
+            {
+                p.sendMessage(ChatColor.RED + "You are currently not in the game!");
+                return;
+            }
+            
+            for(String name : config.TEAM_HUMAN) {
+                if(name.equals(p.getName())) {
+                    p.getInventory().clear();
+                    config.TEAM_HUMAN.remove(name);
+                }
+            }
+            
+            for(String name : config.TEAM_WAITING) {
+                if(name.equals(p.getName())) {
+                    p.getInventory().clear();
+                    config.TEAM_WAITING.remove(name);
+                }
+            }
+            
+            for(String name : config.TEAM_ZOMBIE) {
+                if(name.equals(p.getName())) {
+                    p.getInventory().clear();
+                    config.TEAM_ZOMBIE.remove(name);
+                }
+            }		
 	}
 	
 	public void leaveGame(Player p)
 	{
-		quietLeaveGame(p);
-		String locstring = this.getConfig().getString("spawn.leave");
-		if (locstring == null || locstring.length() == 0)
-		{
-			p.sendMessage(ChatColor.RED + "Sent to your spawn point.  Tell your admin to save a leave point!");
-			p.teleport(p.getBedSpawnLocation());
-		}
-		else
-		{
-			Location l = getLocFromString(locstring, p);
-			p.teleport(l);
-		}
-		if (p.getActivePotionEffects() != null)
-		{
-			for (PotionEffect pe: p.getActivePotionEffects())
-			{
-				p.removePotionEffect(pe.getType());
-			}
-		}
-		p.sendMessage(ChatColor.LIGHT_PURPLE + "You have left the game!");
+            quietLeaveGame(p);
+            if (config.SPAWN_LEAVE == null)
+            {
+                p.sendMessage(ChatColor.RED + "Sent to your spawn point.  Tell your admin to save a leave point!");
+                p.teleport(p.getBedSpawnLocation());
+            }
+            else
+            {
+                p.teleport(config.SPAWN_LEAVE);
+            }
+            if (p.getActivePotionEffects() != null)
+            {
+                for (PotionEffect pe: p.getActivePotionEffects())
+                {
+                    p.removePotionEffect(pe.getType());
+                }
+            }
+            p.sendMessage(ChatColor.LIGHT_PURPLE + "You have left the game!");
 	}
 	
 	public void removePlayerFromGame(OfflinePlayer op) //
 	{
-		for (String name: this.getConfig().getStringList("team.human"))
-		{
-			if (name.equals(op.getName()))
-			{
-				removeFromList("team.human", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.spectator"))
-		{
-			if (name.equals(op.getName()))
-			{
-				removeFromList("team.spectator", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.waiting"))
-		{
-			if (name.equals(op.getName()))
-			{
-				removeFromList("team.waiting", name);
-			}
-		}
-		for (String name: this.getConfig().getStringList("team.zombie"))
-		{
-			if (name.equals(op.getName()))
-			{
-				removeFromList("team.zombie", name);
-			}
-		}
+            for(String name : config.TEAM_HUMAN) {
+                if(name.equals(op.getName())) {
+                    config.TEAM_HUMAN.remove(name);
+                }
+            }
+            
+            for(String name : config.TEAM_WAITING) {
+                if(name.equals(op.getName())) {
+                    config.TEAM_WAITING.remove(name);
+                }
+            }
+            
+            for(String name : config.TEAM_ZOMBIE) {
+                if(name.equals(op.getName())) {
+                    config.TEAM_ZOMBIE.remove(name);
+                }
+            }
 	}
-	
-	public void addToList(String path, String o)
-	{
-		List<String> newlist = this.getConfig().getStringList(path);
-		newlist.add(o);
-		this.getConfig().set(path, newlist);
-	}
-	public void removeFromList(String path, String o)
-	{
-		List<String> newlist = this.getConfig().getStringList(path);
-		newlist.remove(o);
-		this.getConfig().set(path, newlist);
-	}
-	public void clearList(String path)
-	{
-		List<String> newlist = this.getConfig().getStringList(path);
-		newlist.clear();
-		this.getConfig().set(path, newlist);
-	}
-	
-	public void setList(String path, String o)
-	{
-		this.getConfig().getStringList(path).clear();
-		addToList(path, o);
-	}
-	
-	//DEPRECATED
-	public void addPotionEffect(String path, PotionEffect o)
-	{
-		//Modify this code to deal with PotionEffects directly
-		//List<PotionEffect> newlist = (List<PotionEffect>)this.getConfig().getList(path);
-		//newlist.add(o);
-		//this.getConfig().set(path, newlist);
-	}
-	
-	//converts a coordinate string as stored in config into a Location
-	public Location getLocFromString(String locstring, Player p)
-	{
-		int div = locstring.indexOf(";");
-		String space = locstring.substring(0, div);
-		String dir = locstring.substring(div+1, locstring.length());
-		
-		int first = space.indexOf(",");
-		int last = space.lastIndexOf(",");
-		double x = Double.parseDouble(space.substring(0, first));
-		double y = Double.parseDouble(space.substring(first+1, last));
-		double z = Double.parseDouble(space.substring(last+1, space.length()));
-		
-		int first1 = dir.indexOf(",");
-		float pitch = Float.parseFloat(dir.substring(0, first1));
-		float yaw = Float.parseFloat(dir.substring(first1+1, dir.length()));
-		//getLogger().info("pitch: " + dir.substring(0, first1));
-		//getLogger().info("yaw: " + dir.substring(first1+1, dir.length()));
-		
-		return new Location(p.getWorld(), x, y, z, yaw, pitch);
-		
-	}
-	
-	public Location getSpawn(String path, Player p)
-	{
-		int listsize = this.getConfig().getStringList(path).size();
-		if (listsize == 0)
-		{
-			getLogger().info("ERROR: No spawns listed for path " + path + "!");
-			return null;
-		}
-		
-		int index = (int)(Math.random()*listsize);
-		String loc = this.getConfig().getStringList(path).get(index);
-		return getLocFromString(loc, p);
-	}
-	
-	public String getPotionEffectName(String s)
-	{
-		String t = s;
-		t = t.toLowerCase();
-		t = t.replace('_', ' ');
-		return t;
-	}
-	
-	public void applyHumanLoadout(Player p)
-	{
-		p.getInventory().setContents((ItemStack[])this.getConfig().getList("inventory.human").toArray(new ItemStack[p.getInventory().getContents().length]));
-		p.getInventory().setArmorContents((ItemStack[])this.getConfig().getList("armor.human").toArray(new ItemStack[p.getInventory().getArmorContents().length]));
-		/*
-		p.getInventory().clear();
-		int index = 0;
-		while (index < 36)
-		{
-			if (this.getConfig().getList("inventory.human") == null)
-			{
-				p.sendMessage(ChatColor.RED + "You don't have a kit saved!  Clearing inventory...");
-				p.getInventory().clear();
-				break;
-			}
-			ItemStack i = (ItemStack)this.getConfig().getList("inventory.human").get(index);
-			if (i != null)
-			{
-				p.getInventory().setItem(index, i);
-			}
-			index++;
-		}
-		*/
-		
-		//assuming all entries are PotionEffects
-		if (this.getConfig().getList("potion.human") != null)
-		{
-			for (Object entry: this.getConfig().getList("potion.zombie"))
-			{
-				PotionEffect pe = (PotionEffect)entry;
-				PotionEffect newpot = new PotionEffect(pe.getType(), 7200*20, pe.getAmplifier());
-				p.addPotionEffect((PotionEffect)newpot);
-			}
-		}
-	}
-	
-	public void applyZombieLoadout(Player p)
-	{
-		p.getInventory().setContents((ItemStack[])this.getConfig().getList("inventory.zombie").toArray(new ItemStack[p.getInventory().getContents().length]));
-		p.getInventory().setArmorContents((ItemStack[])this.getConfig().getList("armor.zombie").toArray(new ItemStack[p.getInventory().getArmorContents().length]));
-		/*
-		p.getInventory().clear();
-		int index = 0;
-		while (index < 36)
-		{
-			if (this.getConfig().getList("inventory.zombie") == null)
-			{
-				p.sendMessage(ChatColor.RED + "You don't have a kit saved!  Clearing inventory...");
-				p.getInventory().clear();
-				break;
-			}
-			ItemStack i = (ItemStack)this.getConfig().getList("inventory.zombie").get(index);
-			if (i != null)
-			{
-				p.getInventory().setItem(index, i);
-			}
-			index++;
-		}*/
-		
-		//assuming all entries are PotionEffects
-		if (this.getConfig().getList("potion.zombie") != null)
-		{
-			for (Object entry: this.getConfig().getList("potion.zombie"))
-			{
-				PotionEffect pe = (PotionEffect)entry;
-				PotionEffect newpot = new PotionEffect(pe.getType(), 7200*20, pe.getAmplifier());
-				p.addPotionEffect((PotionEffect)newpot);
-			}
-		}
-	}
-	
+
 	public void startGame(CommandSender cs, int gameTimeSeconds)
-	{
-		
-		if (gameActive)
-		{
-			cs.sendMessage("The game is already in progress!");
-			return;
-		}
-		else
-		{
-			List<String> playersin = this.getConfig().getStringList("team.waiting");
-			for (String name: this.getConfig().getStringList("team.zombie"))
-			{
-				playersin.add(name);
-			}
-			clearList("team.zombie");
-			for (String name: this.getConfig().getStringList("team.human"))
-			{
-				playersin.add(name);
-			}
-			clearList("team.human");
-			this.getConfig().set("team.waiting", playersin);
-			
-			//check that spawn points exist
-			if (this.getConfig().getStringList("spawn.human").size() == 0 || this.getConfig().getStringList("spawn.zombie").size() == 0)
-			{
-				getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Human or Zombie spawn points have not been set!  The game cannot start.");
-				return;
-			}
-			if (this.getConfig().get("spawn.humanhold") == null || this.getConfig().get("spawn.zombiehold") == null)
-			{
-				getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Human or Zombie hold points have not been set!  The game cannot start.");
-				return;
-			}
-			if (this.getConfig().get("inventory.human") == null)
-			{
-				getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Human inventory has not been set.  The game cannot start.");
-				return;
-			}
-			if (this.getConfig().get("inventory.zombie") == null)
-			{
-				getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Zombie inventory has not been set.  The game cannot start.");
-				return;
-			}
-			
-			
-			//Team sorting
-			int num = this.getConfig().getStringList("team.waiting").size();
-			int zombienum = num / 6 + 1;
-			List<String> players = this.getConfig().getStringList("team.waiting");
-			List<String> zombies = this.getConfig().getStringList("team.zombie");
-			while (zombienum != 0)
-			{
-				//Randomly choose an index given the size of the list of players
-				int index = (int)(Math.random()*playersin.size());
-				zombies.add(players.get(index));
-				players.remove(players.get(index));
-				zombienum--;
-			}
-			
-			for (String name: players)
-			{
-				Player p = (Player)this.getServer().getOfflinePlayer(name);
-				joinHuman(p);
-			}
-			for (String name: zombies)
-			{
-				Player p = (Player)this.getServer().getOfflinePlayer(name);
-				joinZombie(p);
-			}
-			
-			
-			final FileConfiguration config = this.getConfig();
-			Runnable scheduleGameEnd = new Runnable(){
-				
-				public void run(){
-					if (config.getStringList("team.human").size() > 0)
-					{
-						getServer().broadcastMessage(ChatColor.RED + "The humans have won! Game over!");
-					}
-					else
-					{
-						getServer().broadcastMessage(ChatColor.GREEN + "The zombies have won! Game over!");
-					}
-					gameActive = false;
-					//move all players back to waiting list
-					resetPlayers();
-				}
-				
-				
-			};
-			
-			gameEnd = Bukkit.getScheduler().runTaskLater(this, scheduleGameEnd, (long)(gameTimeSeconds * 20));
-			gameActive = true;
-		}
-		
+        {	
+            if (gameActive)
+            {
+                    cs.sendMessage("The game is already in progress!");
+            }
+            else
+            {
+                for(String name : config.TEAM_ZOMBIE) {
+                    config.TEAM_WAITING.add(name);
+                    config.TEAM_ZOMBIE.remove(name);
+                }
+                
+                for(String name : config.TEAM_HUMAN) {
+                    config.TEAM_WAITING.add(name);
+                    config.TEAM_ZOMBIE.remove(name);
+                }
+
+                //check that spawn points exist
+                if ((config.SPAWN_HUMAN == null || config.SPAWN_HUMAN.size() == 0) || (config.SPAWN_ZOMBIE == null || config.SPAWN_ZOMBIE.size() == 0))
+                {
+                    getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Human or Zombie spawn points have not been set!  The game cannot start.");
+                    return;
+                }
+                if (config.SPAWN_HUMAN_HOLD == null || config.SPAWN_ZOMBIE_HOLD == null)
+                {
+                    getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Human or Zombie hold points have not been set!  The game cannot start.");
+                    return;
+                }
+                if (config.LOADOUT_HUMAN_ARMOR == null)
+                {
+                    getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Human inventory has not been set.  The game cannot start.");
+                    return;
+                }
+                if (config.LOADOUT_ZOMBIE_INVEN == null)
+                {
+                    getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Zombie inventory has not been set.  The game cannot start.");
+                    return;
+                }
+
+
+                //Team sorting
+                int num = config.TEAM_WAITING.size();
+                int zombienum = num / 6 + 1;
+                while (zombienum != 0)
+                {
+                    //Randomly choose an index given the size of the list of players
+                    int index = (int)(Math.random()*num);
+                    config.TEAM_ZOMBIE.add(config.TEAM_WAITING.get(index));
+                    config.TEAM_WAITING.remove(index);
+                    zombienum--;
+                }
+
+                for (String name: config.TEAM_WAITING)
+                {
+                    Player p = (Player)this.getServer().getOfflinePlayer(name);
+                    joinHuman(p);
+                }
+                for (String name: config.TEAM_ZOMBIE)
+                {
+                    Player p = (Player)this.getServer().getOfflinePlayer(name);
+                    joinZombie(p);
+                }
+
+                Runnable scheduleGameEnd = new Runnable(){
+                        public void run(){
+                            if (config.TEAM_HUMAN.size() > 0)
+                            {
+                                getServer().broadcastMessage(config.HUMAN_TEXT + "The humans have won! Game over!");
+                            }
+                            else
+                            {
+                                getServer().broadcastMessage(config.ZOMBIE_TEXT + "The zombies have won! Game over!");
+                            }
+                            gameActive = false;
+                            //move all players back to waiting list
+                            resetPlayers();
+                        }
+
+
+                };
+
+                gameEnd = Bukkit.getScheduler().runTaskLater(this, scheduleGameEnd, (long)(gameTimeSeconds * 20));
+                gameActive = true;
+            }
 	}
 	
 	public void resetPlayers()
 	{
-		for (String name: this.getConfig().getStringList("team.human"))
-		{
-			removeFromList("team.human", name);
-			addToList("team.waiting", name);
-		}
-		for (String name: this.getConfig().getStringList("team.zombie"))
-		{
-			removeFromList("team.zombie", name);
-			addToList("team.waiting", name);
-		}
-		for (String name: this.getConfig().getStringList("team.waiting"))
-		{
-			OfflinePlayer op = getServer().getOfflinePlayer(name);
-			if (op.isOnline())
-			{
-				//clear inventory 
-				Player p = (Player)op;
-				p.getInventory().clear();
-				if (p.getActivePotionEffects() != null)
-				{
-					for (PotionEffect pe: p.getActivePotionEffects())
-					{
-						p.removePotionEffect(pe.getType());
-					}
-				}
-				quietLeaveGame(p);
-				silentJoinWaiting(p);
-				Location l = getLocFromString(this.getConfig().getString("spawn.wait"), p);
-				p.teleport(l);
-			}
-		}
+            for (String name: config.TEAM_HUMAN)
+            {
+                config.TEAM_HUMAN.remove(name);
+                config.TEAM_WAITING.add(name);
+            }
+            for (String name: config.TEAM_ZOMBIE)
+            {
+                config.TEAM_ZOMBIE.remove(name);
+                config.TEAM_WAITING.add(name);
+            }
+            for (String name: config.TEAM_WAITING)
+            {
+                OfflinePlayer op = getServer().getOfflinePlayer(name);
+                if (op.isOnline())
+                {
+                    //clear inventory 
+                    Player p = (Player)op;
+                    p.getInventory().clear();
+                    if (p.getActivePotionEffects() != null)
+                    {
+                            for (PotionEffect pe: p.getActivePotionEffects())
+                            {
+                                    p.removePotionEffect(pe.getType());
+                            }
+                    }
+                    quietLeaveGame(p);
+                    silentJoinWaiting(p);
+                    p.teleport(config.SPAWN_WAIT);
+                }
+            }
 	}
 }

@@ -6,6 +6,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 
 public class Utils {
     MCInfection plugin;
@@ -140,5 +142,45 @@ public class Utils {
             locations.add(locToString(loc));
         }
         return locations;
+    }
+    
+    public Location getRandomSpawn(List<Location> spawns) {
+        if(spawns == null || spawns.isEmpty()) {
+            return null;
+        } else {
+            return spawns.get((int)(Math.random() * spawns.size()));
+        }
+    }
+    
+    public void applyHumanLoadout(Player p) {
+        if(config.LOADOUT_HUMAN_INVEN != null && config.LOADOUT_HUMAN_INVEN.size() > 0) {
+            p.getInventory().setContents(config.LOADOUT_HUMAN_INVEN.toArray(new ItemStack[config.LOADOUT_HUMAN_INVEN.size()]));
+        }
+        
+        if(config.LOADOUT_HUMAN_ARMOR != null && config.LOADOUT_HUMAN_ARMOR.size() > 0) {
+            p.getInventory().setArmorContents(config.LOADOUT_HUMAN_ARMOR.toArray(new ItemStack[config.LOADOUT_HUMAN_ARMOR.size()]));
+        }
+        
+        if(config.LOADOUT_HUMAN_POTIONS != null && config.LOADOUT_HUMAN_POTIONS.size() > 0) {
+            for(PotionEffect effect : config.LOADOUT_HUMAN_POTIONS) {
+                p.addPotionEffect(new PotionEffect(effect.getType(), 7200*20, effect.getAmplifier()));
+            }
+        }
+    }
+    
+    public void applyZombieLoadout(Player p) {
+        if(config.LOADOUT_ZOMBIE_INVEN != null && config.LOADOUT_ZOMBIE_INVEN.size() > 0) {
+            p.getInventory().setContents(config.LOADOUT_ZOMBIE_INVEN.toArray(new ItemStack[config.LOADOUT_ZOMBIE_INVEN.size()]));
+        }
+        
+        if(config.LOADOUT_ZOMBIE_ARMOR != null && config.LOADOUT_ZOMBIE_ARMOR.size() > 0) {
+            p.getInventory().setArmorContents(config.LOADOUT_ZOMBIE_ARMOR.toArray(new ItemStack[config.LOADOUT_ZOMBIE_ARMOR.size()]));
+        }
+        
+        if(config.LOADOUT_ZOMBIE_POTIONS != null && config.LOADOUT_ZOMBIE_POTIONS.size() > 0) {
+            for(PotionEffect effect : config.LOADOUT_ZOMBIE_POTIONS) {
+                p.addPotionEffect(new PotionEffect(effect.getType(), 7200*20, effect.getAmplifier()));
+            }
+        }
     }
 }
