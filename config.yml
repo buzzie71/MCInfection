@@ -26,11 +26,16 @@ spawn:
     
 loadout:
     zombie:
+        inven:
+            
+        armor:
+            
+        potions:
     
     human:
-    
-potions:
-    zombie:
-    
-    human:
+        inven:
+            
+        armor:
+            
+        potions:
     

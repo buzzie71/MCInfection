@@ -1,5 +1,7 @@
 package com.gmail.buzziespy.MCInfection;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -122,5 +124,21 @@ public class Utils {
     
     public String locToString(Location loc) {
         return (loc.getBlockX() + ":" + loc.getBlockY() + ":" + loc.getBlockZ() + ":" + Math.round(loc.getYaw()) + ":" + Math.round(loc.getPitch()) + ":" + loc.getWorld().getName());
+    }
+    
+    public List<Location> locListFromStrings(List<?> stringLocs) {
+        List<Location> locations = new ArrayList<>();
+        for(String loc : (List<String>)stringLocs) {
+            locations.add(locFromString(loc));
+        }
+        return locations;
+    }
+    
+    public List<String> locListToStrings(List<Location> locList) {
+        List<String> locations = new ArrayList<>();
+        for(Location loc : locList) {
+            locations.add(locToString(loc));
+        }
+        return locations;
     }
 }

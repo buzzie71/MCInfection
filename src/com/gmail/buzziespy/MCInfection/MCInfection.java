@@ -211,46 +211,40 @@ public final class MCInfection extends JavaPlugin implements Listener{
             //care not to stare at walls when running this!
             else if (cmd.getName().equalsIgnoreCase("set-zombie-spawn"))
             {
-                    if (sender instanceof Player)
-                    {
-                            Player p = (Player)sender;
-                            Location l = p.getLocation();
+                if (sender instanceof Player)
+                {
+                    Player p = (Player)sender;
+                    Location l = p.getLocation();
 
-                            //store to spawn location list
-                            config.SPAWN_ZOMBIE.add(l);
-                            sender.sendMessage(config.ZOMBIE_TEXT + "Zombie spawn set! " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
-                    }
-                    else if (sender instanceof ConsoleCommandSender)
-                    {
-                            getLogger().info("You must be in-game to run this!");
-                    }
-                    return true;
+                    //store to spawn location list
+                    config.SPAWN_ZOMBIE.add(l);
+                    sender.sendMessage(config.ZOMBIE_TEXT + "Zombie spawn set! " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+                }
+                else if (sender instanceof ConsoleCommandSender)
+                {
+                    getLogger().info("You must be in-game to run this!");
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("human-spawn"))
             {       
-                    List<String> spawnloc = this.getConfig().getStringList("spawn.human");
-                    sender.sendMessage(ChatColor.RED + "Human spawns:");
-                    for (String loc: spawnloc)
-                    {
-                            int cutoff = loc.indexOf(";");
-                            String coord = loc.substring(0, cutoff);
-                            sender.sendMessage(coord);
-                    }
-                    return true;
+                sender.sendMessage(config.HUMAN_TEXT + "Human spawns:");
+                for (Location loc : config.SPAWN_HUMAN)
+                {
+                    sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("zombie-spawn"))
             {
-                    List<String> spawnloc = this.getConfig().getStringList("spawn.zombie");
-                    sender.sendMessage(ChatColor.GREEN + "Zombie spawns:");
-                    for (String loc: spawnloc)
-                    {
-                            int cutoff = loc.indexOf(";");
-                            String coord = loc.substring(0, cutoff);
-                            sender.sendMessage(coord);
-                    }
-                    return true;
+                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie spawns:");
+                for (Location loc: config.SPAWN_ZOMBIE)
+                {
+                    sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("clear-human-spawn"))
@@ -272,25 +266,18 @@ public final class MCInfection extends JavaPlugin implements Listener{
             //being returned to the map.
             else if (cmd.getName().equalsIgnoreCase("set-human-hold"))
             {
-                    if (sender instanceof Player)
-                    {
-                            Player p = (Player)sender;
-                            Location l = p.getLocation();
-                            double x = l.getBlockX() + 0.5;
-                            double y = l.getBlockY();
-                            double z = l.getBlockZ() + 0.5;
-                            float pitch = l.getPitch();
-                            float yaw = l.getYaw();
-                            String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
-
-                            this.getConfig().set("spawn.humanhold", spawnloc);
-                            sender.sendMessage(ChatColor.RED + "Human hold set! " + (int)x + "," + (int)y + "," + (int)z);
-                    }
-                    else if (sender instanceof ConsoleCommandSender)
-                    {
-                            getLogger().info("You must be in-game to run this!");
-                    }
-                    return true;
+                if (sender instanceof Player)
+                {
+                    Player p = (Player)sender;
+                    Location l = p.getLocation();
+                    config.SPAWN_HUMAN_HOLD = l;
+                    sender.sendMessage(config.HUMAN_TEXT + "Human hold set! " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+                }
+                else if (sender instanceof ConsoleCommandSender)
+                {
+                    getLogger().info("You must be in-game to run this!");
+                }
+                return true;
             }
 
             //set a spawn point for zombies at the player's location
@@ -298,47 +285,34 @@ public final class MCInfection extends JavaPlugin implements Listener{
             //care not to stare at walls when running this!
             else if (cmd.getName().equalsIgnoreCase("set-zombie-hold"))
             {
-                    if (sender instanceof Player)
-                    {
-                            Player p = (Player)sender;
-                            Location l = p.getLocation();
-                            double x = l.getBlockX() + 0.5;
-                            double y = l.getBlockY();
-                            double z = l.getBlockZ() + 0.5;
-                            float pitch = l.getPitch();
-                            float yaw = l.getYaw();
-                            String spawnloc = x + "," + y + "," + z + ";" + pitch + "," + yaw;
-
-                            this.getConfig().set("spawn.zombiehold", spawnloc);
-                            sender.sendMessage(ChatColor.GREEN + "Zombie hold set! " + (int)x + "," + (int)y + "," + (int)z);
-                            //getLogger().info("pitch: " + l.getPitch());
-                            //getLogger().info("yaw: " + l.getYaw());
-                    }
-                    else if (sender instanceof ConsoleCommandSender)
-                    {
-                            getLogger().info("You must be in-game to run this!");
-                    }
-                    return true;
+                if (sender instanceof Player)
+                {
+                    Player p = (Player)sender;
+                    Location l = p.getLocation();
+                    config.SPAWN_ZOMBIE_HOLD = l;
+                    sender.sendMessage(config.ZOMBIE_TEXT + "Zombie hold set! " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+                }
+                else if (sender instanceof ConsoleCommandSender)
+                {
+                    getLogger().info("You must be in-game to run this!");
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("human-hold"))
             {
-                    String spawnloc = this.getConfig().getString("spawn.humanhold");
-                    sender.sendMessage(ChatColor.RED + "Human hold cell:");
-                    int cutoff = spawnloc.indexOf(";");
-                    String coord = spawnloc.substring(0, cutoff);
-                    sender.sendMessage(coord);
-                    return true;
+                sender.sendMessage(config.HUMAN_TEXT + "Human hold cell:");
+                Location loc = config.SPAWN_HUMAN_HOLD;
+                sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("zombie-hold"))
             {
-                    String spawnloc = this.getConfig().getString("spawn.zombiehold");
-                    sender.sendMessage(ChatColor.GREEN + "Zombie hold cell:");
-                    int cutoff = spawnloc.indexOf(";");
-                    String coord = spawnloc.substring(0, cutoff);
-                    sender.sendMessage(coord);
-                    return true;
+                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie hold cell:");
+                Location loc = config.SPAWN_ZOMBIE_HOLD;
+                sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("clear-human-hold"))
@@ -361,96 +335,64 @@ public final class MCInfection extends JavaPlugin implements Listener{
             //under potion.human and potion.zombie: <effect number>,<strength> (duration assumed to be a long time (2 hours))
             else if (cmd.getName().equalsIgnoreCase("save-human-loadout"))
             {
-                    if (sender instanceof Player)
-                    {
-                            //save inventory
-                            Player p = (Player)sender;
-                            clearList("inventory.human");
-                            List<ItemStack> inventory = Arrays.asList(p.getInventory().getContents());
-                            this.getConfig().set("inventory.human", inventory);
-                            getLogger().info(this.getConfig().getList("inventory.human").toString());
+                if (sender instanceof Player)
+                {
+                    //save inventory
+                    Player p = (Player)sender;
+                    config.LOADOUT_HUMAN_INVEN = Arrays.asList(p.getInventory().getContents());
 
-                            //save armor
-                            clearList("armor.human");
-                            List<ItemStack> armor = Arrays.asList(p.getInventory().getArmorContents());
-                            this.getConfig().set("armor.human", armor);
-                            getLogger().info(this.getConfig().getList("armor.human").toString());
+                    //save armor
+                    config.LOADOUT_HUMAN_ARMOR = Arrays.asList(p.getInventory().getArmorContents());
 
+                    config.LOADOUT_HUMAN_POTIONS = (List<PotionEffect>)p.getActivePotionEffects();
 
-                            //clear existing loadout
-                            clearList("potion.human");
-                            this.getConfig().set("potion.human", p.getActivePotionEffects());
-
-                            p.sendMessage(ChatColor.GREEN + "Human loadout saved!");
-
-                    }
-                    else if (sender instanceof ConsoleCommandSender)
-                    {
-                            getLogger().info("You must be in-game to run this!");
-                    }
-                    return true;
+                    p.sendMessage(config.HUMAN_TEXT + "Human loadout saved!");
+                }
+                else if (sender instanceof ConsoleCommandSender)
+                {
+                    getLogger().info("You must be in-game to run this!");
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("save-zombie-loadout"))
             {
-                    if (sender instanceof Player)
-                    {
-                            //save inventory
-                            Player p = (Player)sender;
-                            clearList("inventory.zombie");
-                            List<ItemStack> inventory = Arrays.asList(p.getInventory().getContents());
-                            this.getConfig().set("inventory.zombie", inventory);
+                if (sender instanceof Player)
+                {
+                    //save inventory
+                    Player p = (Player)sender;
+                    config.LOADOUT_ZOMBIE_INVEN = Arrays.asList(p.getInventory().getContents());
 
-                            //save armor
-                            clearList("armor.zombie");
-                            List<ItemStack> armor = Arrays.asList(p.getInventory().getArmorContents());
-                            this.getConfig().set("armor.zombie", armor);
-                            getLogger().info(this.getConfig().getList("armor.zombie").toString());
+                    //save armor
+                    config.LOADOUT_ZOMBIE_ARMOR = Arrays.asList(p.getInventory().getArmorContents());
 
-                            clearList("potion.zombie");
-                            this.getConfig().set("potion.zombie", p.getActivePotionEffects());
+                    config.LOADOUT_ZOMBIE_POTIONS = (List<PotionEffect>)p.getActivePotionEffects();
 
-                            p.sendMessage(ChatColor.GREEN + "Zombie loadout saved!");
-                    }
-                    else if (sender instanceof ConsoleCommandSender)
-                    {
-                            getLogger().info("You must be in-game to run this!");
-                    }
-                    return true;
+                    p.sendMessage(config.ZOMBIE_TEXT + "Zombie loadout saved!");
+                }
+                else if (sender instanceof ConsoleCommandSender)
+                {
+                    getLogger().info("You must be in-game to run this!");
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("human-loadout"))
             {
-                    sender.sendMessage(ChatColor.RED + "Human inventory:");
-                    int index = 0;
-                    while (index < 36)
-                    {
-                            ItemStack i = (ItemStack)(this.getConfig().getList("inventory.human").get(index));
-                            if (i != null)
-                            {
-                                    sender.sendMessage(ChatColor.LIGHT_PURPLE + i.getType().toString() + " x" + i.getAmount());
-                            }
-                            index++;
-                    }
-                    sender.sendMessage(ChatColor.RED + "Human armor:");
-                    index = 0;
-                    while (index < 4)
-                    {
-                            ItemStack i = (ItemStack)(this.getConfig().getList("armor.human").get(index));
-                            if (i != null)
-                            {
-                                    sender.sendMessage(ChatColor.LIGHT_PURPLE + i.getType().toString());
-                            }
-                            index++;
-                    }
-                    sender.sendMessage(ChatColor.RED + "Human potion effects:");
-                    //assuming all entries are PotionEffects
-                    for (Object entry: this.getConfig().getList("potion.human"))
-                    {
-                            PotionEffect pe = (PotionEffect)entry;
-                            sender.sendMessage(ChatColor.LIGHT_PURPLE + pe.getType().getName() + " " + (pe.getAmplifier()+1));
-                    }
-                    return true;
+                sender.sendMessage(config.HUMAN_TEXT + "Human inventory:");
+                for(ItemStack item : config.LOADOUT_HUMAN_INVEN) {
+                    sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name() + " x" + item.getAmount());
+                }
+                sender.sendMessage(config.HUMAN_TEXT + "Human armor:");
+                for(ItemStack item : config.LOADOUT_HUMAN_ARMOR) {
+                    sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name());
+                }
+                sender.sendMessage(config.HUMAN_TEXT + "Human potion effects:");
+                //assuming all entries are PotionEffects
+                for(PotionEffect effect : config.LOADOUT_HUMAN_POTIONS) {
+                    sender.sendMessage(ChatColor.LIGHT_PURPLE + effect.getType().getName() + " " + (effect.getAmplifier()+1));
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("zombie-loadout"))

@@ -25,16 +25,18 @@ public class Configuration {
     public List<String> TEAM_ZOMBIE;
     public List<String> TEAM_HUMAN;
     public List<String> TEAM_WAITING;
-    public Location SPAWN_ZOMBIE;
-    public Location SPAWN_HUMAN;
+    public List<Location> SPAWN_ZOMBIE;
+    public List<Location> SPAWN_HUMAN;
     public Location SPAWN_ZOMBIE_HOLD;
     public Location SPAWN_HUMAN_HOLD;
     public Location SPAWN_LEAVE;
     public Location SPAWN_WAIT;
-    public List<ItemStack> LOADOUT_ZOMBIE;
-    public List<ItemStack> LOADOUT_HUMAN;
-    public List<PotionEffect> POTIONS_ZOMBIE;
-    public List<PotionEffect> POTIONS_HUMAN;
+    public List<ItemStack> LOADOUT_ZOMBIE_INVEN;
+    public List<ItemStack> LOADOUT_ZOMBIE_ARMOR;
+    public List<PotionEffect> LOADOUT_ZOMBIE_POTIONS;
+    public List<ItemStack> LOADOUT_HUMAN_INVEN;
+    public List<ItemStack> LOADOUT_HUMAN_ARMOR;
+    public List<PotionEffect> LOADOUT_HUMAN_POTIONS;
     
     public Configuration(MCInfection plugin) {
         this.plugin = plugin;
@@ -47,16 +49,18 @@ public class Configuration {
         plugin.getConfig().set("team.zombie", TEAM_ZOMBIE);
         plugin.getConfig().set("team.human", TEAM_HUMAN);
         plugin.getConfig().set("team.waiting", TEAM_WAITING);
-        plugin.getConfig().set("spawn.zombie", SPAWN_ZOMBIE);
-        plugin.getConfig().set("spawn.human", SPAWN_HUMAN);
-        plugin.getConfig().set("spawn.zombie-hold", SPAWN_ZOMBIE_HOLD);
-        plugin.getConfig().set("spawn.human-hold", SPAWN_HUMAN_HOLD);
-        plugin.getConfig().set("spawn.leave", SPAWN_LEAVE);
-        plugin.getConfig().set("spawn.wait", SPAWN_WAIT);
-        plugin.getConfig().set("loadout.zombie", LOADOUT_ZOMBIE);
-        plugin.getConfig().set("loadout.human", LOADOUT_HUMAN);
-        plugin.getConfig().set("potions.zombie", POTIONS_ZOMBIE);
-        plugin.getConfig().set("potions.human", POTIONS_HUMAN);
+        plugin.getConfig().set("spawn.zombie", utils.locListToStrings(SPAWN_ZOMBIE));
+        plugin.getConfig().set("spawn.human", utils.locListToStrings(SPAWN_HUMAN));
+        plugin.getConfig().set("spawn.zombie-hold", utils.locToString(SPAWN_ZOMBIE_HOLD));
+        plugin.getConfig().set("spawn.human-hold", utils.locToString(SPAWN_HUMAN_HOLD));
+        plugin.getConfig().set("spawn.leave", utils.locToString(SPAWN_LEAVE));
+        plugin.getConfig().set("spawn.wait", utils.locToString(SPAWN_WAIT));
+        plugin.getConfig().set("loadout.zombie.inven", LOADOUT_ZOMBIE_INVEN);
+        plugin.getConfig().set("loadout.zombie.armor", LOADOUT_ZOMBIE_ARMOR);
+        plugin.getConfig().set("loadout.zombie.potions", LOADOUT_ZOMBIE_POTIONS);
+        plugin.getConfig().set("loadout.human.inven", LOADOUT_HUMAN_INVEN);
+        plugin.getConfig().set("loadout.human.armor", LOADOUT_HUMAN_ARMOR);
+        plugin.getConfig().set("loadout.human.potions", LOADOUT_HUMAN_POTIONS);
                 
         plugin.saveConfig();
     }
@@ -71,16 +75,18 @@ public class Configuration {
         TEAM_ZOMBIE = (List<String>)plugin.getConfig().getList("team.zombie");
         TEAM_HUMAN = (List<String>)plugin.getConfig().getList("team.human");
         TEAM_WAITING = (List<String>)plugin.getConfig().getList("team.waiting");
-        SPAWN_ZOMBIE = utils.locFromString(plugin.getConfig().getString("spawn.zombie"));
-        SPAWN_HUMAN = utils.locFromString(plugin.getConfig().getString("spawn.human"));
+        SPAWN_ZOMBIE = utils.locListFromStrings(plugin.getConfig().getList("spawn.zombie"));
+        SPAWN_HUMAN = utils.locListFromStrings(plugin.getConfig().getList("spawn.human"));
         SPAWN_ZOMBIE_HOLD = utils.locFromString(plugin.getConfig().getString("spawn.zombie-hold"));
         SPAWN_HUMAN_HOLD = utils.locFromString(plugin.getConfig().getString("spawn.human-hold"));
         SPAWN_LEAVE = utils.locFromString(plugin.getConfig().getString("spawn.leave"));
         SPAWN_WAIT = utils.locFromString(plugin.getConfig().getString("spawn.wait"));
-        LOADOUT_ZOMBIE = (List<ItemStack>)plugin.getConfig().getList("loadout.zombie");
-        LOADOUT_HUMAN = (List<ItemStack>)plugin.getConfig().getList("loadout.human");
-        POTIONS_ZOMBIE = (List<PotionEffect>)plugin.getConfig().getList("potions.zombie");
-        POTIONS_HUMAN = (List<PotionEffect>)plugin.getConfig().getList("potions.human");
+        LOADOUT_ZOMBIE_INVEN = (List<ItemStack>)plugin.getConfig().getList("loadout.zombie.inven");
+        LOADOUT_ZOMBIE_ARMOR = (List<ItemStack>)plugin.getConfig().getList("loadout.zombie.armor");
+        LOADOUT_ZOMBIE_POTIONS = (List<PotionEffect>)plugin.getConfig().getList("loadout.zombie.potions");
+        LOADOUT_HUMAN_INVEN = (List<ItemStack>)plugin.getConfig().getList("loadout.human.inven");
+        LOADOUT_HUMAN_ARMOR = (List<ItemStack>)plugin.getConfig().getList("loadout.human.armor");
+        LOADOUT_HUMAN_POTIONS = (List<PotionEffect>)plugin.getConfig().getList("loadout.human.potions");
     }
     
     public void reload() {
@@ -88,16 +94,18 @@ public class Configuration {
         List<String> zombieTeam = TEAM_ZOMBIE;
         List<String> humanTeam = TEAM_HUMAN;
         List<String> waitingTeam = TEAM_WAITING;
-        Location zombieSpawn = SPAWN_ZOMBIE;
-        Location humanSpawn = SPAWN_HUMAN;
+        List<Location> zombieSpawn = SPAWN_ZOMBIE;
+        List<Location> humanSpawn = SPAWN_HUMAN;
         Location holdZombieSpawn = SPAWN_ZOMBIE_HOLD;
         Location holdHumanSpawn = SPAWN_HUMAN_HOLD;
         Location leaveSpawn = SPAWN_LEAVE;
         Location waitSpawn = SPAWN_WAIT;
-        List<ItemStack> zombieLoadout = LOADOUT_ZOMBIE;
-        List<ItemStack> humanLoadout = LOADOUT_HUMAN;
-        List<PotionEffect> zombiePotions = POTIONS_ZOMBIE;
-        List<PotionEffect> humanPotions = POTIONS_HUMAN;
+        List<ItemStack> zombieLoadoutInven = LOADOUT_ZOMBIE_INVEN;
+        List<ItemStack> zombieLoadoutArmor = LOADOUT_ZOMBIE_ARMOR;
+        List<PotionEffect> zombieLoadoutPotions = LOADOUT_ZOMBIE_POTIONS;
+        List<ItemStack> humanLoadoutInven = LOADOUT_HUMAN_INVEN;
+        List<ItemStack> humanLoadoutArmor = LOADOUT_HUMAN_ARMOR;
+        List<PotionEffect> humanLoadoutPotions = LOADOUT_HUMAN_POTIONS;
         
         load();
         
@@ -110,10 +118,12 @@ public class Configuration {
         SPAWN_HUMAN_HOLD = holdHumanSpawn;
         SPAWN_LEAVE = leaveSpawn;
         SPAWN_WAIT = waitSpawn;
-        LOADOUT_ZOMBIE = zombieLoadout;
-        LOADOUT_HUMAN = humanLoadout;
-        POTIONS_ZOMBIE = zombiePotions;
-        POTIONS_HUMAN = humanPotions;
+        LOADOUT_ZOMBIE_INVEN = zombieLoadoutInven;
+        LOADOUT_ZOMBIE_ARMOR = zombieLoadoutArmor;
+        LOADOUT_HUMAN_INVEN = humanLoadoutInven;
+        LOADOUT_HUMAN_ARMOR = humanLoadoutArmor;
+        LOADOUT_ZOMBIE_POTIONS = zombieLoadoutPotions;
+        LOADOUT_HUMAN_POTIONS = humanLoadoutPotions;
     }
     
     public String[] printCurrentSettings() {
