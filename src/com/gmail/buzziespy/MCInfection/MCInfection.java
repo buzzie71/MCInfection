@@ -224,20 +224,28 @@ public final class MCInfection extends JavaPlugin implements Listener{
 
             else if (cmd.getName().equalsIgnoreCase("human-spawn"))
             {       
-                sender.sendMessage(config.HUMAN_TEXT + "Human spawns:");
-                for (Location loc : config.SPAWN_HUMAN)
-                {
-                    sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                if(config.SPAWN_HUMAN != null && config.SPAWN_HUMAN.size() > 0) {
+                    sender.sendMessage(config.HUMAN_TEXT + "Human spawns:");
+                    for (Location loc : config.SPAWN_HUMAN)
+                    {
+                        sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                    }
+                } else {
+                    sender.sendMessage(config.HUMAN_TEXT + "No Human spawns are set. Use /set-human-spawn to add one.");
                 }
                 return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("zombie-spawn"))
             {
-                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie spawns:");
-                for (Location loc: config.SPAWN_ZOMBIE)
-                {
-                    sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                if(config.SPAWN_ZOMBIE != null && config.SPAWN_ZOMBIE.size() > 0) {
+                    sender.sendMessage(config.ZOMBIE_TEXT + "Zombie spawns:");
+                    for (Location loc: config.SPAWN_ZOMBIE)
+                    {
+                        sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                    }
+                } else {
+                    sender.sendMessage(config.ZOMBIE_TEXT + "No Zombie spawns are set. Use /set-zombie-spawn to add one.");
                 }
                 return true;
             }
@@ -296,17 +304,25 @@ public final class MCInfection extends JavaPlugin implements Listener{
 
             else if (cmd.getName().equalsIgnoreCase("human-hold"))
             {
-                sender.sendMessage(config.HUMAN_TEXT + "Human hold cell:");
-                Location loc = config.SPAWN_HUMAN_HOLD;
-                sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                if(config.SPAWN_HUMAN_HOLD != null) {
+                    sender.sendMessage(config.HUMAN_TEXT + "Human hold cell:");
+                    Location loc = config.SPAWN_HUMAN_HOLD;
+                    sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                } else {
+                    sender.sendMessage(config.HUMAN_TEXT + "No Human hold cells are set. Use /set-human-hold to set one.");
+                }
                 return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("zombie-hold"))
             {
-                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie hold cell:");
-                Location loc = config.SPAWN_ZOMBIE_HOLD;
-                sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                if(config.SPAWN_ZOMBIE_HOLD != null) {
+                    sender.sendMessage(config.ZOMBIE_TEXT + "Zombie hold cell:");
+                    Location loc = config.SPAWN_ZOMBIE_HOLD;
+                    sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                } else {
+                    sender.sendMessage(config.ZOMBIE_TEXT + "No Zombie hold cells are set. Use /set-zombie-hold to set one.");
+                }
                 return true;
             }
 
@@ -374,35 +390,60 @@ public final class MCInfection extends JavaPlugin implements Listener{
 
             else if (cmd.getName().equalsIgnoreCase("human-loadout"))
             {
-                sender.sendMessage(config.HUMAN_TEXT + "Human inventory:");
-                for(ItemStack item : config.LOADOUT_HUMAN_INVEN) {
-                    sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name() + " x" + item.getAmount());
+                if(config.LOADOUT_HUMAN_INVEN != null && config.LOADOUT_HUMAN_INVEN.size() > 0) {
+                    sender.sendMessage(config.HUMAN_TEXT + "Human inventory:");
+                    for(ItemStack item : config.LOADOUT_HUMAN_INVEN) {
+                        sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name() + " x" + item.getAmount());
+                    }
+                } else {
+                    sender.sendMessage(config.HUMAN_TEXT + "No Human inventory is set. Use /save-human-loadout to set one.");
                 }
-                sender.sendMessage(config.HUMAN_TEXT + "Human armor:");
-                for(ItemStack item : config.LOADOUT_HUMAN_ARMOR) {
-                    sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name());
+                if(config.LOADOUT_HUMAN_ARMOR != null && config.LOADOUT_HUMAN_ARMOR.size() > 0) {
+                    sender.sendMessage(config.HUMAN_TEXT + "Human armor:");
+                    for(ItemStack item : config.LOADOUT_HUMAN_ARMOR) {
+                        sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name());
+                    }
+                } else {
+                    sender.sendMessage(config.HUMAN_TEXT + "No Human armor is set. Use /save-human-loadout to set one.");
                 }
-                sender.sendMessage(config.HUMAN_TEXT + "Human potion effects:");
-                //assuming all entries are PotionEffects
-                for(PotionEffect effect : config.LOADOUT_HUMAN_POTIONS) {
-                    sender.sendMessage(ChatColor.LIGHT_PURPLE + effect.getType().getName() + " " + (effect.getAmplifier()+1));
+                if(config.LOADOUT_HUMAN_POTIONS != null && config.LOADOUT_HUMAN_POTIONS.size() > 0) {
+                    sender.sendMessage(config.HUMAN_TEXT + "Human potion effects:");
+                    //assuming all entries are PotionEffects
+                    for(PotionEffect effect : config.LOADOUT_HUMAN_POTIONS) {
+                        sender.sendMessage(ChatColor.LIGHT_PURPLE + effect.getType().getName() + " " + (effect.getAmplifier()+1));
+                    }
+                } else {
+                    sender.sendMessage(config.HUMAN_TEXT + "No Human potions are set. Use /save-human-loadout to set one.");
                 }
                 return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("zombie-loadout"))
             {
-                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie inventory:");
-                for(ItemStack item : config.LOADOUT_ZOMBIE_INVEN) {
-                    sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name() + " x" + item.getAmount());
+                if(config.LOADOUT_ZOMBIE_INVEN != null && config.LOADOUT_ZOMBIE_INVEN.size() > 0) {
+                    sender.sendMessage(config.ZOMBIE_TEXT + "Zombie inventory:");
+                    for(ItemStack item : config.LOADOUT_ZOMBIE_INVEN) {
+                        sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name() + " x" + item.getAmount());
+                    }
+                } else {
+                    sender.sendMessage(config.ZOMBIE_TEXT + "No Zombie inventory is set. Use /save-zombie-loadout to set one.");
                 }
-                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie armor:");
-                for(ItemStack item : config.LOADOUT_ZOMBIE_ARMOR) {
-                    sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name());
+                if(config.LOADOUT_ZOMBIE_ARMOR != null && config.LOADOUT_ZOMBIE_ARMOR.size() > 0) {
+                    sender.sendMessage(config.ZOMBIE_TEXT + "Zombie armor:");
+                    for(ItemStack item : config.LOADOUT_ZOMBIE_ARMOR) {
+                        sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name());
+                    }
+                } else {
+                    sender.sendMessage(config.ZOMBIE_TEXT + "No Zombie armor is set. Use /save-zombie-loadout to set one.");
                 }
-                sender.sendMessage(config.ZOMBIE_TEXT + "Zombie potion effects:");
-                for(PotionEffect effect : config.LOADOUT_ZOMBIE_POTIONS) {
-                    sender.sendMessage(ChatColor.LIGHT_PURPLE + effect.getType().getName() + " " + (effect.getAmplifier()+1));
+                if(config.LOADOUT_ZOMBIE_POTIONS != null && config.LOADOUT_ZOMBIE_POTIONS.size() > 0) {
+                    sender.sendMessage(config.ZOMBIE_TEXT + "Zombie potion effects:");
+                    //assuming all entries are PotionEffects
+                    for(PotionEffect effect : config.LOADOUT_ZOMBIE_POTIONS) {
+                        sender.sendMessage(ChatColor.LIGHT_PURPLE + effect.getType().getName() + " " + (effect.getAmplifier()+1));
+                    }
+                } else {
+                    sender.sendMessage(config.ZOMBIE_TEXT + "No Zombie potions are set. Use /save-zombie-loadout to set one.");
                 }
                 return true;
             }
@@ -426,10 +467,14 @@ public final class MCInfection extends JavaPlugin implements Listener{
 
             else if (cmd.getName().equalsIgnoreCase("leavespawn"))
             {
+                if(config.SPAWN_LEAVE != null) {
                     sender.sendMessage(ChatColor.RED + "Leave point:");
                     Location loc = config.SPAWN_LEAVE;
                     sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
-                    return true;
+                } else {
+                    sender.sendMessage(ChatColor.RED + "No Leave point has been set. Use /save-leavespawn to set one");
+                }
+                return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("save-waitspawn"))
@@ -450,9 +495,13 @@ public final class MCInfection extends JavaPlugin implements Listener{
 
             else if (cmd.getName().equalsIgnoreCase("waitspawn"))
             {
-                sender.sendMessage(ChatColor.RED + "Wait point:");
-                Location loc = config.SPAWN_WAIT;
-                sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                if(config.SPAWN_WAIT != null) {
+                    sender.sendMessage(ChatColor.RED + "Wait point:");
+                    Location loc = config.SPAWN_WAIT;
+                    sender.sendMessage(loc.getBlockX() + "," + loc.getBlockY() + "," + loc.getBlockZ());
+                } else {
+                    sender.sendMessage(ChatColor.RED + "No Wait point has been set. Use /save-waitspawn to set one.");
+                }
                 return true;
             }
 

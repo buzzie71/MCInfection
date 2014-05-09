@@ -65,15 +65,15 @@ public class Utils {
         //"You are on the <> team"
         if (isHuman(p))
         {
-                s += config.HUMAN_TEXT + "You are on the HUMAN team.";
+            s += config.HUMAN_TEXT + "You are on the HUMAN team.";
         }
         else if (isZombie(p))
         {
-                s += config.ZOMBIE_TEXT + "You are on the ZOMBIE team.";
+            s += config.ZOMBIE_TEXT + "You are on the ZOMBIE team.";
         }
         else if (isWaiting(p))
         {
-                s += ChatColor.RED + "You are on the SPECTATOR team and " + ChatColor.YELLOW + "WAITING TO PLAY.";
+            s += ChatColor.RED + "You are on the SPECTATOR team and " + ChatColor.YELLOW + "WAITING TO PLAY.";
         }
 
 
@@ -85,7 +85,7 @@ public class Utils {
     {
         if (config.TEAM_WAITING.contains(p.getName()))
         {
-                return true;
+            return true;
         }
         return false;
     }
@@ -94,7 +94,7 @@ public class Utils {
     {
         if (config.TEAM_HUMAN.contains(p.getName()))
         {
-                return true;
+            return true;
         }
         return false;
     }
@@ -103,7 +103,7 @@ public class Utils {
     {
         if (config.TEAM_ZOMBIE.contains(p.getName()))
         {
-                return true;
+            return true;
         }
         return false;
     }
@@ -114,6 +114,9 @@ public class Utils {
     }
     
     public Location locFromString(String loc) {
+        if(loc == null) {
+            return null;
+        }
         String[] coords = loc.split(":");
         double x = Double.valueOf(coords[0]);
         double y = Double.valueOf(coords[1]);
@@ -125,10 +128,16 @@ public class Utils {
     }
     
     public String locToString(Location loc) {
+        if(loc == null) {
+            return null;
+        }
         return (loc.getBlockX() + ":" + loc.getBlockY() + ":" + loc.getBlockZ() + ":" + Math.round(loc.getYaw()) + ":" + Math.round(loc.getPitch()) + ":" + loc.getWorld().getName());
     }
     
     public List<Location> locListFromStrings(List<?> stringLocs) {
+        if(stringLocs == null) {
+            return null;
+        }
         List<Location> locations = new ArrayList<>();
         for(String loc : (List<String>)stringLocs) {
             locations.add(locFromString(loc));
@@ -137,6 +146,9 @@ public class Utils {
     }
     
     public List<String> locListToStrings(List<Location> locList) {
+        if(locList == null) {
+            return null;
+        }
         List<String> locations = new ArrayList<>();
         for(Location loc : locList) {
             locations.add(locToString(loc));

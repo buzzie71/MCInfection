@@ -9,13 +9,12 @@ import org.bukkit.potion.PotionEffect;
 
 public class Configuration {
     MCInfection plugin;
-    Utils utils;
     
     //Game constants
     public short HUMAN_WOOL = (short)14;
-    public String HUMAN_TEXT = ChatColor.GREEN + "";
+    public String HUMAN_TEXT = ChatColor.RED + "";
     public short ZOMBIE_WOOL = (short)5;
-    public String ZOMBIE_TEXT = ChatColor.RED + "";
+    public String ZOMBIE_TEXT = ChatColor.GREEN + "";
     
     //Game configurables
     public int GAME_TIME;
@@ -40,7 +39,6 @@ public class Configuration {
     
     public Configuration(MCInfection plugin) {
         this.plugin = plugin;
-        utils = plugin.utils;
     }
     
     public void save() {
@@ -49,12 +47,12 @@ public class Configuration {
         plugin.getConfig().set("team.zombie", TEAM_ZOMBIE);
         plugin.getConfig().set("team.human", TEAM_HUMAN);
         plugin.getConfig().set("team.waiting", TEAM_WAITING);
-        plugin.getConfig().set("spawn.zombie", utils.locListToStrings(SPAWN_ZOMBIE));
-        plugin.getConfig().set("spawn.human", utils.locListToStrings(SPAWN_HUMAN));
-        plugin.getConfig().set("spawn.zombie-hold", utils.locToString(SPAWN_ZOMBIE_HOLD));
-        plugin.getConfig().set("spawn.human-hold", utils.locToString(SPAWN_HUMAN_HOLD));
-        plugin.getConfig().set("spawn.leave", utils.locToString(SPAWN_LEAVE));
-        plugin.getConfig().set("spawn.wait", utils.locToString(SPAWN_WAIT));
+        plugin.getConfig().set("spawn.zombie", plugin.utils.locListToStrings(SPAWN_ZOMBIE));
+        plugin.getConfig().set("spawn.human", plugin.utils.locListToStrings(SPAWN_HUMAN));
+        plugin.getConfig().set("spawn.zombie-hold", plugin.utils.locToString(SPAWN_ZOMBIE_HOLD));
+        plugin.getConfig().set("spawn.human-hold", plugin.utils.locToString(SPAWN_HUMAN_HOLD));
+        plugin.getConfig().set("spawn.leave", plugin.utils.locToString(SPAWN_LEAVE));
+        plugin.getConfig().set("spawn.wait", plugin.utils.locToString(SPAWN_WAIT));
         plugin.getConfig().set("loadout.zombie.inven", LOADOUT_ZOMBIE_INVEN);
         plugin.getConfig().set("loadout.zombie.armor", LOADOUT_ZOMBIE_ARMOR);
         plugin.getConfig().set("loadout.zombie.potions", LOADOUT_ZOMBIE_POTIONS);
@@ -72,15 +70,15 @@ public class Configuration {
         FRIENDLY_FIRE = plugin.getConfig().getBoolean("game.friendly-fire", false);
         ZOMBIE_RESPAWN = plugin.getConfig().getInt("game.zombie-respawn", 5);
         HUMAN_RESPAWN = plugin.getConfig().getInt("game.human-respawn", 5);
-        TEAM_ZOMBIE = (List<String>)plugin.getConfig().getList("team.zombie");
-        TEAM_HUMAN = (List<String>)plugin.getConfig().getList("team.human");
-        TEAM_WAITING = (List<String>)plugin.getConfig().getList("team.waiting");
-        SPAWN_ZOMBIE = utils.locListFromStrings(plugin.getConfig().getList("spawn.zombie"));
-        SPAWN_HUMAN = utils.locListFromStrings(plugin.getConfig().getList("spawn.human"));
-        SPAWN_ZOMBIE_HOLD = utils.locFromString(plugin.getConfig().getString("spawn.zombie-hold"));
-        SPAWN_HUMAN_HOLD = utils.locFromString(plugin.getConfig().getString("spawn.human-hold"));
-        SPAWN_LEAVE = utils.locFromString(plugin.getConfig().getString("spawn.leave"));
-        SPAWN_WAIT = utils.locFromString(plugin.getConfig().getString("spawn.wait"));
+        TEAM_ZOMBIE = (List<String>)plugin.getConfig().getList("team.zombie", new ArrayList<String>());
+        TEAM_HUMAN = (List<String>)plugin.getConfig().getList("team.human", new ArrayList<String>());
+        TEAM_WAITING = (List<String>)plugin.getConfig().getList("team.waiting", new ArrayList<String>());
+        SPAWN_ZOMBIE = plugin.utils.locListFromStrings(plugin.getConfig().getList("spawn.zombie"));
+        SPAWN_HUMAN = plugin.utils.locListFromStrings(plugin.getConfig().getList("spawn.human"));
+        SPAWN_ZOMBIE_HOLD = plugin.utils.locFromString(plugin.getConfig().getString("spawn.zombie-hold"));
+        SPAWN_HUMAN_HOLD = plugin.utils.locFromString(plugin.getConfig().getString("spawn.human-hold"));
+        SPAWN_LEAVE = plugin.utils.locFromString(plugin.getConfig().getString("spawn.leave"));
+        SPAWN_WAIT = plugin.utils.locFromString(plugin.getConfig().getString("spawn.wait"));
         LOADOUT_ZOMBIE_INVEN = (List<ItemStack>)plugin.getConfig().getList("loadout.zombie.inven");
         LOADOUT_ZOMBIE_ARMOR = (List<ItemStack>)plugin.getConfig().getList("loadout.zombie.armor");
         LOADOUT_ZOMBIE_POTIONS = (List<PotionEffect>)plugin.getConfig().getList("loadout.zombie.potions");
