@@ -18,6 +18,40 @@ public class Utils {
         config = plugin.config;
     }
     
+    public boolean isGameSetUp() {
+        if(plugin.config.SPAWN_HUMAN == null || plugin.config.SPAWN_HUMAN.isEmpty())
+            return false;
+        else if(plugin.config.SPAWN_HUMAN_HOLD == null)
+            return false;
+        else if(plugin.config.SPAWN_LEAVE == null)
+            return false;
+        else if(plugin.config.SPAWN_WAIT == null)
+            return false;
+        else if(plugin.config.SPAWN_ZOMBIE == null || plugin.config.SPAWN_ZOMBIE.isEmpty())
+            return false;
+        else if(plugin.config.SPAWN_ZOMBIE_HOLD == null)
+            return false;
+        else
+            return true;
+    }
+    
+    public boolean isLoadoutSetUp() {
+        if(plugin.config.LOADOUT_HUMAN_ARMOR == null)
+            return false;
+        else if(plugin.config.LOADOUT_HUMAN_INVEN == null)
+            return false;
+        else if(plugin.config.LOADOUT_HUMAN_POTIONS == null)
+            return false;
+        else if(plugin.config.LOADOUT_ZOMBIE_ARMOR == null)
+            return false;
+        else if(plugin.config.LOADOUT_ZOMBIE_INVEN == null)
+            return false;
+        else if(plugin.config.LOADOUT_ZOMBIE_POTIONS == null)
+            return false;
+        else
+            return true;
+    }
+    
     public void rosterReport()
     {
         plugin.getLogger().info("Waiting team");

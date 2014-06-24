@@ -73,8 +73,8 @@ public class Configuration {
         TEAM_ZOMBIE = (List<String>)plugin.getConfig().getList("team.zombie", new ArrayList<String>());
         TEAM_HUMAN = (List<String>)plugin.getConfig().getList("team.human", new ArrayList<String>());
         TEAM_WAITING = (List<String>)plugin.getConfig().getList("team.waiting", new ArrayList<String>());
-        SPAWN_ZOMBIE = plugin.utils.locListFromStrings(plugin.getConfig().getList("spawn.zombie"));
-        SPAWN_HUMAN = plugin.utils.locListFromStrings(plugin.getConfig().getList("spawn.human"));
+        SPAWN_ZOMBIE = plugin.utils.locListFromStrings(plugin.getConfig().getList("spawn.zombie", new ArrayList<Location>()));
+        SPAWN_HUMAN = plugin.utils.locListFromStrings(plugin.getConfig().getList("spawn.human", new ArrayList<Location>()));
         SPAWN_ZOMBIE_HOLD = plugin.utils.locFromString(plugin.getConfig().getString("spawn.zombie-hold"));
         SPAWN_HUMAN_HOLD = plugin.utils.locFromString(plugin.getConfig().getString("spawn.human-hold"));
         SPAWN_LEAVE = plugin.utils.locFromString(plugin.getConfig().getString("spawn.leave"));
@@ -128,10 +128,23 @@ public class Configuration {
         List<String> settings = new ArrayList<>();
         settings.add(ChatColor.RED + "-=/" + ChatColor.GREEN + "Current Infection Config" + ChatColor.RED + "\\=-");
         
-        settings.add(ChatColor.AQUA + "Game Time: " + GAME_TIME);
-        settings.add(ChatColor.AQUA + "Friendly Fire: " + statusCheck(FRIENDLY_FIRE));
-        settings.add(ChatColor.AQUA + "Zombie Respawn: " + ZOMBIE_RESPAWN);
-        settings.add(ChatColor.AQUA + "Human Respawn: " + HUMAN_RESPAWN);
+        settings.add(ChatColor.GOLD + "Game Time: " + ChatColor.GREEN + GAME_TIME);
+        settings.add(ChatColor.GOLD + "Friendly Fire: " + statusCheck(FRIENDLY_FIRE));
+        settings.add(ChatColor.GOLD + "Zombie Respawn: " + ChatColor.GREEN + ZOMBIE_RESPAWN);
+        settings.add(ChatColor.GOLD + "Human Respawn: " + ChatColor.GREEN + HUMAN_RESPAWN);
+        settings.add(ChatColor.GOLD + "Zombie Spawn Spoint: " + setCheck(SPAWN_ZOMBIE));
+        settings.add(ChatColor.GOLD + "Zombie Hold Spawn Point: " + setCheck(SPAWN_ZOMBIE_HOLD));
+        settings.add(ChatColor.GOLD + "Human Spawn Point: " + setCheck(SPAWN_HUMAN));
+        settings.add(ChatColor.GOLD + "Human Hold Spawn Point: " + setCheck(SPAWN_HUMAN_HOLD));
+        settings.add(ChatColor.GOLD + "Leave Spawn Point: " + setCheck(SPAWN_LEAVE));
+        settings.add(ChatColor.GOLD + "Wait Spawn Point: " + setCheck(SPAWN_WAIT));
+        settings.add(ChatColor.GOLD + "--Optional--");
+        settings.add(ChatColor.GOLD + "Zombie Loadout Inventory: " + setCheck(LOADOUT_ZOMBIE_INVEN));
+        settings.add(ChatColor.GOLD + "Zombie Loadout Armor: " + setCheck(LOADOUT_ZOMBIE_ARMOR));   
+        settings.add(ChatColor.GOLD + "Zombie Loadout Potions: " + setCheck(LOADOUT_ZOMBIE_POTIONS));   
+        settings.add(ChatColor.GOLD + "Human Loadout Inventory: " + setCheck(LOADOUT_HUMAN_INVEN));
+        settings.add(ChatColor.GOLD + "Human Loadout Armor: " + setCheck(LOADOUT_HUMAN_ARMOR));   
+        settings.add(ChatColor.GOLD + "Human Loadout Potions: " + setCheck(LOADOUT_HUMAN_POTIONS)); 
         
         return settings.toArray(new String[settings.size()]);
     }
@@ -141,5 +154,9 @@ public class Configuration {
             return (ChatColor.GREEN + "Enabled");
         else
             return (ChatColor.GRAY + "Disabled");
+    }
+    
+    public String setCheck(Object toCheck) {
+        return (toCheck == null ? (ChatColor.RED + "Not Set") : (ChatColor.GREEN + "Set") ); 
     }
 }

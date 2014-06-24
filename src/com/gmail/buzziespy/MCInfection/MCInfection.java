@@ -99,8 +99,24 @@ public final class MCInfection extends JavaPlugin implements Listener{
              */
 
             //These fail silently for command senders that are not players
-            if (cmd.getName().equalsIgnoreCase("joinwait"))
+            if(cmd.getName().equalsIgnoreCase("infect")) {
+                if(args.length == 0) {
+                    sender.sendMessage(config.printCurrentSettings());
+                } else {
+                    if(args[0].equalsIgnoreCase("reload")) {
+                        config.reload();
+                        sender.sendMessage(ChatColor.GREEN + "[MCInfection] Config Reloaded");
+                    } else
+                        return false;
+                }
+                return true;
+            }
+            else if (cmd.getName().equalsIgnoreCase("joinwait"))
             {
+                if(!utils.isGameSetUp()) {
+                    sender.sendMessage(ChatColor.RED + "Game setup has not been completed. Run /infect to see current settings.");
+                    return true;
+                }
                 Player p = null;
                 if (sender instanceof Player && args.length == 0)
                 {
@@ -115,6 +131,10 @@ public final class MCInfection extends JavaPlugin implements Listener{
             }
             else if (cmd.getName().equalsIgnoreCase("joinhum"))
             {
+                if(!utils.isGameSetUp()) {
+                    sender.sendMessage(ChatColor.RED + "Game setup has not been completed. Run /infect to see current settings.");
+                    return true;
+                }
                 Player p = null;
                 if (sender instanceof Player && args.length == 0)
                 {
@@ -129,6 +149,10 @@ public final class MCInfection extends JavaPlugin implements Listener{
             }
             else if (cmd.getName().equalsIgnoreCase("joinzom"))
             {
+                if(!utils.isGameSetUp()) {
+                    sender.sendMessage(ChatColor.RED + "Game setup has not been completed. Run /infect to see current settings.");
+                    return true;
+                }
                 Player p = null;
                 if (sender instanceof Player && args.length == 0)
                 {
@@ -143,6 +167,10 @@ public final class MCInfection extends JavaPlugin implements Listener{
             }
             else if (cmd.getName().equalsIgnoreCase("leavegame"))
             {
+                if(!utils.isGameSetUp()) {
+                    sender.sendMessage(ChatColor.RED + "Game setup has not been completed. Run /infect to see current settings.");
+                    return true;
+                }
                 Player p = null;
                 if (sender instanceof Player && args.length == 0)
                 {
@@ -252,14 +280,14 @@ public final class MCInfection extends JavaPlugin implements Listener{
 
             else if (cmd.getName().equalsIgnoreCase("clear-human-spawn"))
             {
-                config.SPAWN_HUMAN = null;
+                config.SPAWN_HUMAN.clear();
                 sender.sendMessage(config.HUMAN_TEXT + "Human spawns cleared!");
                 return true;
             }
 
             else if (cmd.getName().equalsIgnoreCase("clear-zombie-spawn"))
             {
-                config.SPAWN_ZOMBIE = null;
+                config.SPAWN_ZOMBIE.clear();
                 sender.sendMessage(config.ZOMBIE_TEXT + "Zombie spawns cleared!");
                 return true;
             }
@@ -365,7 +393,6 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 }
                 return true;
             }
-
             else if (cmd.getName().equalsIgnoreCase("save-zombie-loadout"))
             {
                 if (sender instanceof Player)
@@ -393,7 +420,8 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 if(config.LOADOUT_HUMAN_INVEN != null && config.LOADOUT_HUMAN_INVEN.size() > 0) {
                     sender.sendMessage(config.HUMAN_TEXT + "Human inventory:");
                     for(ItemStack item : config.LOADOUT_HUMAN_INVEN) {
-                        sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name() + " x" + item.getAmount());
+                        if(item != null )
+                            sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name() + " x" + item.getAmount());
                     }
                 } else {
                     sender.sendMessage(config.HUMAN_TEXT + "No Human inventory is set. Use /save-human-loadout to set one.");
@@ -401,7 +429,8 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 if(config.LOADOUT_HUMAN_ARMOR != null && config.LOADOUT_HUMAN_ARMOR.size() > 0) {
                     sender.sendMessage(config.HUMAN_TEXT + "Human armor:");
                     for(ItemStack item : config.LOADOUT_HUMAN_ARMOR) {
-                        sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name());
+                        if(item != null)
+                            sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name());
                     }
                 } else {
                     sender.sendMessage(config.HUMAN_TEXT + "No Human armor is set. Use /save-human-loadout to set one.");
@@ -423,7 +452,8 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 if(config.LOADOUT_ZOMBIE_INVEN != null && config.LOADOUT_ZOMBIE_INVEN.size() > 0) {
                     sender.sendMessage(config.ZOMBIE_TEXT + "Zombie inventory:");
                     for(ItemStack item : config.LOADOUT_ZOMBIE_INVEN) {
-                        sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name() + " x" + item.getAmount());
+                        if(item != null)
+                            sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name() + " x" + item.getAmount());
                     }
                 } else {
                     sender.sendMessage(config.ZOMBIE_TEXT + "No Zombie inventory is set. Use /save-zombie-loadout to set one.");
@@ -431,7 +461,8 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 if(config.LOADOUT_ZOMBIE_ARMOR != null && config.LOADOUT_ZOMBIE_ARMOR.size() > 0) {
                     sender.sendMessage(config.ZOMBIE_TEXT + "Zombie armor:");
                     for(ItemStack item : config.LOADOUT_ZOMBIE_ARMOR) {
-                        sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name());
+                        if(item != null)
+                            sender.sendMessage(ChatColor.LIGHT_PURPLE + item.getType().name());
                     }
                 } else {
                     sender.sendMessage(config.ZOMBIE_TEXT + "No Zombie armor is set. Use /save-zombie-loadout to set one.");
@@ -484,7 +515,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
                     Player p = (Player)sender;
                     Location l = p.getLocation();
                     config.SPAWN_WAIT = l;
-                    sender.sendMessage(ChatColor.RED + "Leave point set! " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
+                    sender.sendMessage(ChatColor.RED + "Wait point set! " + l.getBlockX() + "," + l.getBlockY() + "," + l.getBlockZ());
                 }
                 else if (sender instanceof ConsoleCommandSender)
                 {
@@ -543,17 +574,17 @@ public final class MCInfection extends JavaPlugin implements Listener{
 
             else if (cmd.getName().equalsIgnoreCase("infection-start"))
             {
-                if (args.length != 0 && args.length != 1)
-                {
+                if (args.length != 0 && args.length != 1) {
                     return false;
-                }
-                if (args.length == 0)
-                {
+                } else if(!utils.isGameSetUp()) {
+                    sender.sendMessage(ChatColor.RED + "Game setup has not been completed. Run /infect to see current settings.");
+                    return true;
+                } else if(!utils.isLoadoutSetUp()) {
+                    sender.sendMessage(ChatColor.GOLD + "WARNING: Team loadouts are not completely set up. Run /infect to see current settings.");
+                } else if (args.length == 0) {
                     startGame(sender, config.GAME_TIME);  //default game time is 1 minute
                     getLogger().info("Starting new Infection game for " + config.GAME_TIME + " seconds.");
-                }
-                else if (args.length == 1)
-                {
+                } else if (args.length == 1) {
                     try {
                         startGame(sender, Integer.parseInt(args[0]));
                     } catch(NumberFormatException e) {
