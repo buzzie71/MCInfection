@@ -165,7 +165,7 @@ public class Utils {
         if(loc == null) {
             return null;
         }
-        return (loc.getBlockX() + ":" + loc.getBlockY() + ":" + loc.getBlockZ() + ":" + Math.round(loc.getYaw()) + ":" + Math.round(loc.getPitch()) + ":" + loc.getWorld().getName());
+        return (Math.round(loc.getX()) + ":" + Math.round(loc.getY()) + ":" + Math.round(loc.getZ()) + ":" + Math.round(loc.getYaw()) + ":" + Math.round(loc.getPitch()) + ":" + loc.getWorld().getName());
     }
     
     public List<Location> locListFromStrings(List<?> stringLocs) {

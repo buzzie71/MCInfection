@@ -75,10 +75,6 @@ public class InfectionListener implements Listener {
                 plugin.resetPlayers();
             }
         }
-        if (utils.isZombie(e.getEntity()))
-        {
-
-        }
     }
     
     @EventHandler
@@ -118,7 +114,6 @@ public class InfectionListener implements Listener {
         p.sendMessage(config.ZOMBIE_TEXT + "You will respawn in " + config.ZOMBIE_RESPAWN + " seconds.");
         Runnable respawn = new Runnable() { 
             public void run() {
-                    plugin.quietLeaveGame(p);
                     plugin.joinZombie(p);
             }
         };

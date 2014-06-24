@@ -130,8 +130,8 @@ public class Configuration {
         
         settings.add(ChatColor.GOLD + "Game Time: " + ChatColor.GREEN + GAME_TIME);
         settings.add(ChatColor.GOLD + "Friendly Fire: " + statusCheck(FRIENDLY_FIRE));
-        settings.add(ChatColor.GOLD + "Zombie Respawn: " + ChatColor.GREEN + ZOMBIE_RESPAWN);
-        settings.add(ChatColor.GOLD + "Human Respawn: " + ChatColor.GREEN + HUMAN_RESPAWN);
+        settings.add(ChatColor.GOLD + "Zombie Respawn Time: " + ChatColor.GREEN + ZOMBIE_RESPAWN);
+        settings.add(ChatColor.GOLD + "Human Respawn Time: " + ChatColor.GREEN + HUMAN_RESPAWN);
         settings.add(ChatColor.GOLD + "Zombie Spawn Spoint: " + setCheck(SPAWN_ZOMBIE));
         settings.add(ChatColor.GOLD + "Zombie Hold Spawn Point: " + setCheck(SPAWN_ZOMBIE_HOLD));
         settings.add(ChatColor.GOLD + "Human Spawn Point: " + setCheck(SPAWN_HUMAN));

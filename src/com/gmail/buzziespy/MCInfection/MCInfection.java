@@ -835,25 +835,12 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 }
 
                 //check that spawn points exist
-                if ((config.SPAWN_HUMAN == null || config.SPAWN_HUMAN.size() == 0) || (config.SPAWN_ZOMBIE == null || config.SPAWN_ZOMBIE.size() == 0))
-                {
-                    getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Human or Zombie spawn points have not been set!  The game cannot start.");
+                if(!utils.isGameSetUp()) {
+                    cs.sendMessage(ChatColor.RED + "Game setup has not been completed. Run /infect to see current settings.");
                     return;
                 }
-                if (config.SPAWN_HUMAN_HOLD == null || config.SPAWN_ZOMBIE_HOLD == null)
-                {
-                    getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Human or Zombie hold points have not been set!  The game cannot start.");
-                    return;
-                }
-                if (config.LOADOUT_HUMAN_ARMOR == null)
-                {
-                    getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Human inventory has not been set.  The game cannot start.");
-                    return;
-                }
-                if (config.LOADOUT_ZOMBIE_INVEN == null)
-                {
-                    getServer().broadcastMessage(ChatColor.DARK_RED + "ERROR: Zombie inventory has not been set.  The game cannot start.");
-                    return;
+                if(!utils.isLoadoutSetUp()) {
+                    cs.sendMessage(ChatColor.GOLD + "WARNING: Team loadouts are not completely set up. Run /infect to see current settings.");
                 }
 
 
@@ -864,20 +851,17 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 {
                     //Randomly choose an index given the size of the list of players
                     int index = (int)(Math.random()*num);
-                    config.TEAM_ZOMBIE.add(config.TEAM_WAITING.get(index));
-                    config.TEAM_WAITING.remove(index);
+                    String name = config.TEAM_WAITING.get(index);
+                    Player p = (Player)this.getServer().getOfflinePlayer(name);
+                    joinZombie(p);
                     zombienum--;
                 }
 
-                for (String name: config.TEAM_WAITING)
+                while(!config.TEAM_WAITING.isEmpty())
                 {
+                    String name = config.TEAM_WAITING.get(0);
                     Player p = (Player)this.getServer().getOfflinePlayer(name);
                     joinHuman(p);
-                }
-                for (String name: config.TEAM_ZOMBIE)
-                {
-                    Player p = (Player)this.getServer().getOfflinePlayer(name);
-                    joinZombie(p);
                 }
 
                 Runnable scheduleGameEnd = new Runnable(){
@@ -919,8 +903,10 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 humanIterator.remove();
             }
             
-            for (String name: config.TEAM_WAITING)
+            Iterator<String> waitingIterator = config.TEAM_WAITING.iterator();
+            while(waitingIterator.hasNext())
             {
+                String name = waitingIterator.next();
                 OfflinePlayer op = getServer().getOfflinePlayer(name);
                 if (op.isOnline())
                 {
@@ -934,8 +920,6 @@ public final class MCInfection extends JavaPlugin implements Listener{
                                     p.removePotionEffect(pe.getType());
                             }
                     }
-                    quietLeaveGame(p);
-                    silentJoinWaiting(p);
                     p.teleport(config.SPAWN_WAIT);
                 }
             }

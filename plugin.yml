@@ -11,7 +11,11 @@ permissions:
         description: Access to game player commands.
         default: true
 
-commands:  
+commands:
+    infect:
+       description: Display current settings or reload from config
+       usage: /infect <reload>
+       permission: infect.admin
     joinwait:
        description: Force-join the waiting (spectator) team.
        usage: /joinspec
