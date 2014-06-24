@@ -1,10 +1,14 @@
+game:
+    time: 60
+    friendly-fire: false
+    human-respawn: 5
+    zombie-respawn: 5
+
 team:
     zombie:
     
     human:
-   
-    spectator:
-    
+
     waiting:
     
 spawn:
@@ -12,21 +16,26 @@ spawn:
     
     human:
     
-    zombiehold:
+    zombie-hold:
     
-    humanhold:
+    human-hold:
     
     leave:
     
     wait:
     
-inventory:
+loadout:
     zombie:
+        inven:
+            
+        armor:
+            
+        potions:
     
     human:
-    
-potion:
-    zombie:
-    
-    human:
+        inven:
+            
+        armor:
+            
+        potions:
     
