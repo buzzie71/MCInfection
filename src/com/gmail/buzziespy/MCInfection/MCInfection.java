@@ -2,8 +2,8 @@ package com.gmail.buzziespy.MCInfection;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -607,18 +607,19 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 p.teleport(l);
             }
 
-            for (String name: config.TEAM_ZOMBIE)
-            {
-                if (name.equals(p.getName()))
-                {
-                    config.TEAM_ZOMBIE.remove(name);
+            Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
+            while(zombieIterator.hasNext()) {
+                String name = zombieIterator.next();
+                if(name.equals(p.getName())) {
+                    zombieIterator.remove();
                 }
             }
-            for (String name: config.TEAM_WAITING)
-            {
-                if (name.equals(p.getName()))
-                {
-                    config.TEAM_WAITING.remove(name);
+            
+            Iterator<String> waitingIterator = config.TEAM_WAITING.iterator();
+            while(waitingIterator.hasNext()) {
+                String name = waitingIterator.next();
+                if(name.equals(p.getName())) {
+                    waitingIterator.remove();
                 }
             }
             config.TEAM_HUMAN.add(p.getName());
@@ -634,15 +635,19 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 return;
             }
             
-            for(String name : config.TEAM_HUMAN) {
+            Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
+            while(humanIterator.hasNext()) {
+                String name = humanIterator.next();
                 if(name.equals(p.getName())) {
-                    config.TEAM_HUMAN.remove(name);
+                    humanIterator.remove();
                 }
             }
             
-            for(String name : config.TEAM_ZOMBIE) {
+            Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
+            while(zombieIterator.hasNext()) {
+                String name = zombieIterator.next();
                 if(name.equals(p.getName())) {
-                    config.TEAM_ZOMBIE.remove(name);
+                    zombieIterator.remove();
                 }
             }
             
@@ -675,15 +680,19 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 p.teleport(l);
             }
             
-            for(String name : config.TEAM_HUMAN) {
+            Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
+            while(humanIterator.hasNext()) {
+                String name = humanIterator.next();
                 if(name.equals(p.getName())) {
-                    config.TEAM_HUMAN.remove(name);
+                    humanIterator.remove();
                 }
             }
             
-            for(String name : config.TEAM_WAITING) {
+            Iterator<String> waitingIterator = config.TEAM_WAITING.iterator();
+            while(waitingIterator.hasNext()) {
+                String name = waitingIterator.next();
                 if(name.equals(p.getName())) {
-                    config.TEAM_WAITING.remove(name);
+                    waitingIterator.remove();
                 }
             }
 
@@ -700,24 +709,26 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 return;
             }
             
-            for(String name : config.TEAM_HUMAN) {
+            Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
+            while(humanIterator.hasNext()) {
+                String name = humanIterator.next();
                 if(name.equals(p.getName())) {
-                    p.getInventory().clear();
-                    config.TEAM_HUMAN.remove(name);
+                    humanIterator.remove();
                 }
             }
             
-            for(String name : config.TEAM_WAITING) {
+            Iterator<String> waitingIterator = config.TEAM_WAITING.iterator();
+            while(waitingIterator.hasNext()) {
+                String name = waitingIterator.next();
                 if(name.equals(p.getName())) {
-                    p.getInventory().clear();
-                    config.TEAM_WAITING.remove(name);
+                    waitingIterator.remove();
                 }
             }
-            
-            for(String name : config.TEAM_ZOMBIE) {
+            Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
+            while(zombieIterator.hasNext()) {
+                String name = zombieIterator.next();
                 if(name.equals(p.getName())) {
-                    p.getInventory().clear();
-                    config.TEAM_ZOMBIE.remove(name);
+                    zombieIterator.remove();
                 }
             }		
 	}
@@ -746,21 +757,26 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	
 	public void removePlayerFromGame(OfflinePlayer op) //
 	{
-            for(String name : config.TEAM_HUMAN) {
+            Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
+            while(humanIterator.hasNext()) {
+                String name = humanIterator.next();
                 if(name.equals(op.getName())) {
-                    config.TEAM_HUMAN.remove(name);
+                    humanIterator.remove();
                 }
             }
             
-            for(String name : config.TEAM_WAITING) {
+            Iterator<String> waitingIterator = config.TEAM_WAITING.iterator();
+            while(waitingIterator.hasNext()) {
+                String name = waitingIterator.next();
                 if(name.equals(op.getName())) {
-                    config.TEAM_WAITING.remove(name);
+                    waitingIterator.remove();
                 }
             }
-            
-            for(String name : config.TEAM_ZOMBIE) {
+            Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
+            while(zombieIterator.hasNext()) {
+                String name = zombieIterator.next();
                 if(name.equals(op.getName())) {
-                    config.TEAM_ZOMBIE.remove(name);
+                    zombieIterator.remove();
                 }
             }
 	}
@@ -773,14 +789,18 @@ public final class MCInfection extends JavaPlugin implements Listener{
             }
             else
             {
-                for(String name : config.TEAM_ZOMBIE) {
+                Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
+                while(zombieIterator.hasNext()) {
+                    String name = zombieIterator.next();
                     config.TEAM_WAITING.add(name);
-                    config.TEAM_ZOMBIE.remove(name);
+                    zombieIterator.remove();
                 }
                 
-                for(String name : config.TEAM_HUMAN) {
+                Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
+                while(humanIterator.hasNext()) {
+                    String name = humanIterator.next();
                     config.TEAM_WAITING.add(name);
-                    config.TEAM_ZOMBIE.remove(name);
+                    humanIterator.remove();
                 }
 
                 //check that spawn points exist
@@ -854,16 +874,20 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	
 	public void resetPlayers()
 	{
-            for (String name: config.TEAM_HUMAN)
-            {
-                config.TEAM_HUMAN.remove(name);
+            Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
+            while(zombieIterator.hasNext()) {
+                String name = zombieIterator.next();
                 config.TEAM_WAITING.add(name);
+                zombieIterator.remove();
             }
-            for (String name: config.TEAM_ZOMBIE)
-            {
-                config.TEAM_ZOMBIE.remove(name);
+
+            Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
+            while(humanIterator.hasNext()) {
+                String name = humanIterator.next();
                 config.TEAM_WAITING.add(name);
+                humanIterator.remove();
             }
+            
             for (String name: config.TEAM_WAITING)
             {
                 OfflinePlayer op = getServer().getOfflinePlayer(name);

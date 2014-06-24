@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.gmail.buzziespy</groupId>
     <artifactId>MCInfection</artifactId>
-    <version>0.5</version>
+    <version>0.6</version>
     <packaging>jar</packaging>
     <build>
         <sourceDirectory>${basedir}/src</sourceDirectory>
@@ -43,7 +43,7 @@
 			<groupId>org.bukkit</groupId>
 			<artifactId>bukkit</artifactId>
 			<!-- Bukkit API Version, change if necessary -->
-			<version>1.7.2-R0.3</version>
+			<version>1.7.9-R0.3-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
     <properties>

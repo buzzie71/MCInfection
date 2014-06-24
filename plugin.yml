@@ -1,6 +1,6 @@
 name: MCInfection
 main: com.gmail.buzziespy.MCInfection.MCInfection
-version: 0.5
+version: 0.6
 
 permissions:
     infect.admin:
