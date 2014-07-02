@@ -71,12 +71,15 @@ public class InfectionListener implements Listener {
                 //End the game
                 plugin.gameActive = false;
                 plugin.gameEnd.cancel();
+                plugin.game30.cancel();
+                plugin.game10.cancel();
                 //move all players back to waiting list
                 plugin.resetPlayers();
             }
         }
     }
     
+    //TODO: This here is said to be buggy/redundant
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent e)
     {
@@ -103,18 +106,20 @@ public class InfectionListener implements Listener {
 
         if (utils.isHuman(e.getPlayer()) && plugin.gameActive)
         {
-            e.setRespawnLocation(config.SPAWN_HUMAN_HOLD);
+            //e.setRespawnLocation(config.SPAWN_HUMAN_HOLD);
+        	e.getPlayer().teleport(config.SPAWN_HUMAN_HOLD);
         }
 
         if (utils.isZombie(e.getPlayer()) && plugin.gameActive)
         {
             e.setRespawnLocation(config.SPAWN_ZOMBIE_HOLD);
+        	//e.getPlayer().teleport(config.SPAWN_ZOMBIE_HOLD);
         }
         final Player p = e.getPlayer();
         p.sendMessage(config.ZOMBIE_TEXT + "You will respawn in " + config.ZOMBIE_RESPAWN + " seconds.");
         Runnable respawn = new Runnable() { 
             public void run() {
-                    plugin.joinZombie(p);
+                    plugin.forceJoinZombie(p);
             }
         };
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, respawn, (long)config.ZOMBIE_RESPAWN*20);

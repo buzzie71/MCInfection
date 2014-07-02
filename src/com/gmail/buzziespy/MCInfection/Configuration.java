@@ -16,6 +16,10 @@ public class Configuration {
     public short ZOMBIE_WOOL = (short)5;
     public String ZOMBIE_TEXT = ChatColor.GREEN + "";
     
+    //added waiting team things
+    public short WAITING_WOOL = -1; //no team indicator for players waiting to play
+    public String WAITING_TEXT = ChatColor.GOLD + "";
+    
     //Game configurables
     public int GAME_TIME;
     public boolean FRIENDLY_FIRE;

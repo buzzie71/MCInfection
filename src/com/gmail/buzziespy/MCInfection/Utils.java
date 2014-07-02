@@ -5,6 +5,7 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -18,6 +19,7 @@ public class Utils {
         config = plugin.config;
     }
     
+    //checks if all spawn locations are set
     public boolean isGameSetUp() {
         if(plugin.config.SPAWN_HUMAN == null || plugin.config.SPAWN_HUMAN.isEmpty())
             return false;
@@ -35,6 +37,7 @@ public class Utils {
             return true;
     }
     
+    //checks if all team loadouts are set
     public boolean isLoadoutSetUp() {
         if(plugin.config.LOADOUT_HUMAN_ARMOR == null)
             return false;
@@ -52,6 +55,8 @@ public class Utils {
             return true;
     }
     
+    //Displays teams in console.  (Console does use this)
+    /*
     public void rosterReport()
     {
         plugin.getLogger().info("Waiting team");
@@ -69,9 +74,11 @@ public class Utils {
         {
                 plugin.getLogger().info(name);
         }
-    }
+    }*/
     
-    public void playerRosterReport(Player p)
+    //Displays teams and their rosters in a message format
+    //Does not currently support command blocks calling this information
+    public void rosterReport(CommandSender cs)
     {
         String s = "";
         s += config.HUMAN_TEXT + "Humans: " + ChatColor.LIGHT_PURPLE;
@@ -87,32 +94,33 @@ public class Utils {
                 s += name + " ";
         }
         s += "\n";
-
+        
+        s += config.WAITING_TEXT + "Waiting: " + ChatColor.YELLOW;
         for (String name: config.TEAM_WAITING)
         {
                 s += name + " ";
         }
         s += "\n";
-
-
-
-        //"You are on the <> team"
-        if (isHuman(p))
+        
+        //"You are on the <> team" addition for players
+        if (cs instanceof Player)
         {
-            s += config.HUMAN_TEXT + "You are on the HUMAN team.";
-        }
-        else if (isZombie(p))
-        {
-            s += config.ZOMBIE_TEXT + "You are on the ZOMBIE team.";
-        }
-        else if (isWaiting(p))
-        {
-            s += ChatColor.RED + "You are on the SPECTATOR team and " + ChatColor.YELLOW + "WAITING TO PLAY.";
+        	Player p = (Player)cs;
+	        if (isHuman(p))
+	        {
+	            s += config.HUMAN_TEXT + "You are on the HUMAN team.";
+	        }
+	        else if (isZombie(p))
+	        {
+	            s += config.ZOMBIE_TEXT + "You are on the ZOMBIE team.";
+	        }
+	        else if (isWaiting(p))
+	        {
+	            s += ChatColor.GOLD + "You are WAITING TO PLAY.";
+	        }
         }
 
-
-
-        p.sendMessage(s);
+        cs.sendMessage(s);
     }
 
     public boolean isWaiting(Player p)
@@ -147,6 +155,7 @@ public class Utils {
         return (isZombie(p)||isHuman(p)||isWaiting(p));
     }
     
+    //Returns a Location object after retrieving location info given at config address loc
     public Location locFromString(String loc) {
         if(loc == null) {
             return null;
@@ -161,11 +170,14 @@ public class Utils {
         return new Location(world, x, y, z, yaw, pitch);
     }
     
+    //Given a Location object, return the coords in String form
+    //Coordinates currently rounded to make them easier to read for players
+    //Removed Math.round() on X/Y/Z to prevent whole number coords from being stored in config (and read from it)
     public String locToString(Location loc) {
         if(loc == null) {
             return null;
         }
-        return (Math.round(loc.getX()) + ":" + Math.round(loc.getY()) + ":" + Math.round(loc.getZ()) + ":" + Math.round(loc.getYaw()) + ":" + Math.round(loc.getPitch()) + ":" + loc.getWorld().getName());
+        return (loc.getX() + ":" + loc.getY() + ":" + loc.getZ() + ":" + Math.round(loc.getYaw()) + ":" + Math.round(loc.getPitch()) + ":" + loc.getWorld().getName());
     }
     
     public List<Location> locListFromStrings(List<?> stringLocs) {
@@ -198,7 +210,17 @@ public class Utils {
         }
     }
     
+    //Loadout application - for now always completely wipe inventory/armor/potions of player before actually applying loadout
     public void applyHumanLoadout(Player p) {
+    	//wipe inventory/armor/potions
+    	p.getInventory().clear();
+    	p.getInventory().setArmorContents(null);
+    	for (PotionEffect pe: p.getActivePotionEffects())
+    	{
+    		p.removePotionEffect(pe.getType());
+    	}
+    	
+    	//apply loadout from config
         if(config.LOADOUT_HUMAN_INVEN != null && config.LOADOUT_HUMAN_INVEN.size() > 0) {
             p.getInventory().setContents(config.LOADOUT_HUMAN_INVEN.toArray(new ItemStack[config.LOADOUT_HUMAN_INVEN.size()]));
         }
@@ -215,6 +237,15 @@ public class Utils {
     }
     
     public void applyZombieLoadout(Player p) {
+    	//wipe inventory/armor/potions
+    	p.getInventory().clear();
+    	p.getInventory().setArmorContents(null);
+    	for (PotionEffect pe: p.getActivePotionEffects())
+    	{
+    		p.removePotionEffect(pe.getType());
+    	}
+    	
+    	//apply loadout from config
         if(config.LOADOUT_ZOMBIE_INVEN != null && config.LOADOUT_ZOMBIE_INVEN.size() > 0) {
             p.getInventory().setContents(config.LOADOUT_ZOMBIE_INVEN.toArray(new ItemStack[config.LOADOUT_ZOMBIE_INVEN.size()]));
         }

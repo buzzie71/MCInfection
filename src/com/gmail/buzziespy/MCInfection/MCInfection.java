@@ -22,24 +22,26 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	
 	/* TODO:
 	 * To do:
-	 * Fix dead human players not teleporting to the hold cells for respawn time
-	 * v Clear player inventories upon death
-	 * Prevent players from moving or placing the team wool indicators
-	 * v Fix zombie players not being removed from zombie team upon game end (they appear as both Zombies and Waiting)
-	 * v Fix non-ops not being able to use /teams, /joingame, /leavegame
-	 * v Fix players leaving the game twice
-	 * Allow console to remove offline players from teams
-	 * v Allow console or ops to stop an active game
-	 * v Set up ability to determine game length using /infection-start [time in seconds]
-	 * v Teleport players to waitspawn on game end
-	 * v Teleport the last dead player to waitspawn on game end (eg. the last dead human)
-	 * v Schedule a Bukkit task to declare human victory if time runs out and at least one human is alive
-	 * v Cancel that task if zombies win
+	 * 
+	 * - !! REWRITE AND SIMPLIFY CODE !! (Just need to look through Listener now)
+	 * 
+	 * - v Fix zombies not respawning (going to hold, waiting 5 seconds, coming back)
+	 *   - problem arises from using joinZombies() on a Zombie member, need to find a way to force-join the team
+	 *   - originally this was done by leaveGame() then joinZombies(), but maybe an additional joinZombies()-related
+	 *   - helper method is in order
+	 * - Fix holds not used(?)
+	 *   - problem seems to fix itself once I specifically set the hold points
+	 *   - maybe hold location information does not persist across restarts/reloads?
+	 * - v Fix waiting players not being healed/fed on game start 
+	 *   - need code to feed players to max (hunger + saturation)
+	 * - v Fix offline players in the waiting list bugging game start
 	 */
 	
 	public final Configuration config = new Configuration(this);
         public final Utils utils = new Utils(this);
 	public BukkitTask gameEnd;
+	public BukkitTask game30;
+	public BukkitTask game10;
         public boolean gameActive = false;
         
 	@Override
@@ -83,6 +85,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	 * The program will randomly choose a place and send the player there.
 	 */
         
+	//TODO: Go through commands and make command names more consistent (set vs save, etc.)
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args)
 	{
             /*The player has joined the game if the player is listed in any of the four "teams" below.
@@ -196,15 +199,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
             //shows current teams to the player
             else if (cmd.getName().equalsIgnoreCase("teams"))
             {
-                if (sender instanceof Player)
-                {
-                    Player p = (Player)sender;
-                    utils.playerRosterReport(p);
-                }
-                else if (sender instanceof ConsoleCommandSender)
-                {
-                    utils.rosterReport();
-                }
+                utils.rosterReport(sender);
                 return true;
             }
 
@@ -479,7 +474,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 return true;
             }
 
-            else if (cmd.getName().equalsIgnoreCase("save-leavespawn"))
+            else if (cmd.getName().equalsIgnoreCase("save-leave-point"))
             {
                 if (sender instanceof Player)
                 {
@@ -496,7 +491,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 return true;
             }
 
-            else if (cmd.getName().equalsIgnoreCase("leavespawn"))
+            else if (cmd.getName().equalsIgnoreCase("leave-point"))
             {
                 if(config.SPAWN_LEAVE != null) {
                     sender.sendMessage(ChatColor.RED + "Leave point:");
@@ -508,7 +503,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 return true;
             }
 
-            else if (cmd.getName().equalsIgnoreCase("save-waitspawn"))
+            else if (cmd.getName().equalsIgnoreCase("save-wait-point"))
             {
                 if (sender instanceof Player)
                 {
@@ -524,7 +519,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 return true;
             }
 
-            else if (cmd.getName().equalsIgnoreCase("waitspawn"))
+            else if (cmd.getName().equalsIgnoreCase("wait-point"))
             {
                 if(config.SPAWN_WAIT != null) {
                     sender.sendMessage(ChatColor.RED + "Wait point:");
@@ -536,14 +531,17 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 return true;
             }
 
+            //This command should only send players to the waiting team - all pre-game checks are done with /infection-start
             else if (cmd.getName().equalsIgnoreCase("joingame"))
             {
                 if (sender instanceof Player)
                 {
-                    Player p = (Player)sender;
+                	Player p = (Player)sender;
                     if (!utils.isInGame(p))
                     {
-                        p.getInventory().clear();
+                    	//pre-game inventory/potion effect clearing
+                    	//may be a good idea to move these to loadout application?
+                    	p.getInventory().clear();
                         if (p.getActivePotionEffects() != null)
                         {
                             for (PotionEffect pe: p.getActivePotionEffects())
@@ -553,7 +551,8 @@ public final class MCInfection extends JavaPlugin implements Listener{
                         }
 
                         //send player to wait point
-                        if (config.SPAWN_WAIT == null || config.SPAWN_WAIT.length() == 0)
+                        //config.SPAWN_WAIT is now a Location object so checking its length becomes redundant
+                        if (config.SPAWN_WAIT == null)// || config.SPAWN_WAIT.length() == 0)
                         {
                             p.sendMessage(ChatColor.RED + "Tell your admin to save a wait point first!");
                         }
@@ -566,7 +565,7 @@ public final class MCInfection extends JavaPlugin implements Listener{
                     else
                     {
                         p.sendMessage(ChatColor.YELLOW + "You're already on a team!");
-                        utils.playerRosterReport(p);
+                        utils.rosterReport(p);
                     }
                     return true;
                 }
@@ -601,16 +600,62 @@ public final class MCInfection extends JavaPlugin implements Listener{
             {
                 if (gameActive)
                 {
-                    getServer().broadcastMessage(ChatColor.RED + "The game has been ended!");
+                    getServer().broadcastMessage(ChatColor.RED + "The game has been ended early!");
                     gameActive = false;
-                    //Stop game from ending as scheduled if the game has force-ended
+                    //Stop game end/time announcements from happening as scheduled if the game has force-ended
                     gameEnd.cancel();
+                    game30.cancel();
+                    game10.cancel();
+                    resetPlayers();
                 }
                 else
                 {
                     sender.sendMessage(ChatColor.RED + "The game is already over!");
                 }
                 return true;
+            }
+            
+            else if (cmd.getName().equalsIgnoreCase("ff"))
+            {
+            	String status = "";
+            	if (config.FRIENDLY_FIRE == true)
+            	{
+            		status = ChatColor.RED + "ON";
+            	}
+            	else //if false
+            	{
+            		status = ChatColor.GREEN + "OFF";
+            	}
+            	sender.sendMessage(ChatColor.GOLD + "Friendly fire is " + status + ChatColor.GOLD + ".");
+            	return true;
+            }
+            
+            else if (cmd.getName().equalsIgnoreCase("ffon"))
+            {
+            	if (config.FRIENDLY_FIRE == true)
+            	{
+            		sender.sendMessage(ChatColor.RED + "Friendly fire is already on!");
+            	}
+            	else
+            	{
+            		config.FRIENDLY_FIRE = true;
+            		getServer().broadcastMessage(ChatColor.GOLD + "Friendly fire is now " + ChatColor.RED + "ON");
+            	}
+            	return true;
+            }
+            
+            else if (cmd.getName().equalsIgnoreCase("ffoff"))
+            {
+            	if (config.FRIENDLY_FIRE == false)
+            	{
+            		sender.sendMessage(ChatColor.RED + "Friendly fire is already off!");
+            	}
+            	else
+            	{
+            		config.FRIENDLY_FIRE = false;
+            		getServer().broadcastMessage(ChatColor.GOLD + "Friendly fire is now " + ChatColor.GREEN + "OFF");
+            	}
+            	return true;
             }
 
             return false;
@@ -619,78 +664,92 @@ public final class MCInfection extends JavaPlugin implements Listener{
 	//TODO
 	//Methods below, commands above 
 	
+	//First checks that spawn points are valid (ie, they exist)
+	//Removes player from Zombies or Waiting team if applicable
+	//adds player to the human team list, gives them the loadout.
 	public void joinHuman(Player p)
 	{
+		//Check if player is on the team already
             if (utils.isHuman(p))
             {
                 p.sendMessage(ChatColor.RED + "You are already on the human team!");
                 return;
             }
 
+          //Attempt to teleport player to the spawn point
             Location l = utils.getRandomSpawn(config.SPAWN_HUMAN);
             if (l == null)
             {
-                p.sendMessage("ERROR: Tell your admin to save human spawn points!");
-                p.teleport(config.SPAWN_WAIT);
+                p.sendMessage("ERROR: No human spawn points saved!  Use /set-human-spawn to set some.");
+                //p.teleport(config.SPAWN_WAIT);
             }
             else
             {
                 p.teleport(l);
             }
 
-            Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
-            while(zombieIterator.hasNext()) {
-                String name = zombieIterator.next();
-                if(name.equals(p.getName())) {
-                    zombieIterator.remove();
-                }
-            }
+          //Remove name from other teams if applicable
+            config.TEAM_ZOMBIE.remove(p.getName());
+            config.TEAM_WAITING.remove(p.getName());
             
-            Iterator<String> waitingIterator = config.TEAM_WAITING.iterator();
-            while(waitingIterator.hasNext()) {
-                String name = waitingIterator.next();
-                if(name.equals(p.getName())) {
-                    waitingIterator.remove();
-                }
-            }
+            //Add name to team list and adjust inventory accordingly
             config.TEAM_HUMAN.add(p.getName());
             utils.applyHumanLoadout(p);
             p.sendMessage(config.HUMAN_TEXT + "You have joined the Humans!");
+            
+            //heal/feed player
+            p.setHealth(p.getMaxHealth());
+            p.setSaturation(20);
+            p.setExhaustion(0);
+            p.setFoodLevel(20);
 	}
-        
+	
+	//Puts player on the waiting team but does not notify them of it
         public void silentJoinWaiting(Player p)
         {
+        	//Check if player is on the team already
             if (utils.isWaiting(p))
             {
                 p.sendMessage(ChatColor.RED + "You are already waiting to play!");
                 return;
             }
-            
-            Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
-            while(humanIterator.hasNext()) {
-                String name = humanIterator.next();
-                if(name.equals(p.getName())) {
-                    humanIterator.remove();
-                }
+
+            //Attempt to teleport player to the spawn point
+            Location l = config.SPAWN_WAIT;
+            if (l == null)
+            {
+                p.sendMessage("ERROR: No wait point saved!  Use /save-waitspawn to set one.");
+            }
+            else
+            {
+                p.teleport(l);
             }
             
-            Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
-            while(zombieIterator.hasNext()) {
-                String name = zombieIterator.next();
-                if(name.equals(p.getName())) {
-                    zombieIterator.remove();
-                }
-            }
+            //Remove name from other teams if applicable
+            config.TEAM_HUMAN.remove(p.getName());
             
+            config.TEAM_ZOMBIE.remove(p.getName());
+            
+            //Add name to team list and adjust inventory accordingly
             config.TEAM_WAITING.add(p.getName());
+            p.getInventory().clear();
+        	p.getInventory().setArmorContents(null);
+            for (PotionEffect pe: p.getActivePotionEffects())
+            {
+            	p.removePotionEffect(pe.getType());
+            }
             
+            p.setHealth(p.getMaxHealth());
+            p.setSaturation(20);
+            p.setExhaustion(0);
+            p.setFoodLevel(20);
         }
 	
 	public void joinWaiting(Player p)
 	{
             silentJoinWaiting(p);
             p.sendMessage(ChatColor.YELLOW + "You are now waiting to play!");
-        }
+    }
 	
 	public void joinZombie(Player p)
 	{
@@ -700,74 +759,55 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 return;
             }
 
-            Location l = utils.getRandomSpawn(config.SPAWN_ZOMBIE);
-            if (l == null)
-            {
-                p.sendMessage("ERROR: Tell your admin to save human spawn points!");
-                p.teleport(config.SPAWN_WAIT);
-            }
-            else
-            {
-                p.teleport(l);
-            }
+            forceJoinZombie(p);
             
-            Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
+            config.TEAM_WAITING.remove(p.getName());
+	}
+	
+	//This should only be used to put players on the zombie team after respawning in the hold;
+	//some loops and other things can be thrown out for simplicity
+	public void forceJoinZombie(Player p)
+	{
+            Location l = utils.getRandomSpawn(config.SPAWN_ZOMBIE);
+            p.teleport(l);
+            
+            /*Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
             while(humanIterator.hasNext()) {
                 String name = humanIterator.next();
                 if(name.equals(p.getName())) {
                     humanIterator.remove();
                 }
-            }
-            
-            Iterator<String> waitingIterator = config.TEAM_WAITING.iterator();
-            while(waitingIterator.hasNext()) {
-                String name = waitingIterator.next();
-                if(name.equals(p.getName())) {
-                    waitingIterator.remove();
-                }
-            }
+            }*/
+            config.TEAM_HUMAN.remove(p.getName());
 
-            config.TEAM_ZOMBIE.add(p.getName());
+            //don't add a zombie to the zombie team list again
+            if (!config.TEAM_ZOMBIE.contains(p.getName()))
+            {
+            	config.TEAM_ZOMBIE.add(p.getName());
+            }
             utils.applyZombieLoadout(p);
             p.sendMessage(config.ZOMBIE_TEXT + "You have joined the Zombies!");
+            
+            //heal/feed player
+            p.setHealth(p.getMaxHealth());
+            p.setSaturation(20);
+            p.setExhaustion(0);
+            p.setFoodLevel(20);
 	}
 	
+	//Not merged, but has been rewritten as analogue to existing human/zombie joining methods
+	//Silent version does not notify players of the team change
 	public void quietLeaveGame(Player p)
 	{
-            if (!(utils.isZombie(p)||utils.isHuman(p)||utils.isWaiting(p)))
+            //Check if player is on the team already
+			if (!(utils.isZombie(p)||utils.isHuman(p)||utils.isWaiting(p)))
             {
                 p.sendMessage(ChatColor.RED + "You are currently not in the game!");
                 return;
             }
             
-            Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
-            while(humanIterator.hasNext()) {
-                String name = humanIterator.next();
-                if(name.equals(p.getName())) {
-                    humanIterator.remove();
-                }
-            }
-            
-            Iterator<String> waitingIterator = config.TEAM_WAITING.iterator();
-            while(waitingIterator.hasNext()) {
-                String name = waitingIterator.next();
-                if(name.equals(p.getName())) {
-                    waitingIterator.remove();
-                }
-            }
-            Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
-            while(zombieIterator.hasNext()) {
-                String name = zombieIterator.next();
-                if(name.equals(p.getName())) {
-                    zombieIterator.remove();
-                }
-            }		
-	}
-	
-	public void leaveGame(Player p)
-	{
-            quietLeaveGame(p);
-            if (config.SPAWN_LEAVE == null)
+			//Attempt to teleport player to the spawn point
+			if (config.SPAWN_LEAVE == null)
             {
                 p.sendMessage(ChatColor.RED + "Sent to your spawn point.  Tell your admin to save a leave point!");
                 p.teleport(p.getBedSpawnLocation());
@@ -776,6 +816,15 @@ public final class MCInfection extends JavaPlugin implements Listener{
             {
                 p.teleport(config.SPAWN_LEAVE);
             }
+			
+			//Remove name from other teams if applicable
+            config.TEAM_HUMAN.remove(p.getName());
+            config.TEAM_WAITING.remove(p.getName());
+            config.TEAM_ZOMBIE.remove(p.getName());
+            
+            //Add name to team list (nothing for leaving) and adjust inventory accordingly
+            p.getInventory().clear();
+            p.getInventory().setArmorContents(null);
             if (p.getActivePotionEffects() != null)
             {
                 for (PotionEffect pe: p.getActivePotionEffects())
@@ -783,9 +832,21 @@ public final class MCInfection extends JavaPlugin implements Listener{
                     p.removePotionEffect(pe.getType());
                 }
             }
+            
+            p.setHealth(p.getMaxHealth());
+            p.setSaturation(20);
+            p.setExhaustion(0);
+            p.setFoodLevel(20);
+	}
+	
+	public void leaveGame(Player p)
+	{
+            quietLeaveGame(p);
             p.sendMessage(ChatColor.LIGHT_PURPLE + "You have left the game!");
 	}
 	
+	//This is used to remove offline players from teams
+	//Throws exception but still works well enough
 	public void removePlayerFromGame(OfflinePlayer op) //
 	{
             Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
@@ -844,9 +905,21 @@ public final class MCInfection extends JavaPlugin implements Listener{
                 }
 
 
+                //TODO: Check this
+                //First go through the list and throw out any offline players
+                Object[] waitList = config.TEAM_WAITING.toArray();
+                for (Object name: waitList)
+                {
+                	OfflinePlayer op = getServer().getOfflinePlayer((String)name);
+                	if (!op.isOnline())
+                	{
+                		config.TEAM_WAITING.remove((String)name);
+                	}
+                }
+                
                 //Team sorting
                 int num = config.TEAM_WAITING.size();
-                int zombienum = num / 6 + 1;
+                int zombienum = num / 6 + 1; //NOTE: If only one player has joined the game, this player will be sorted as Zombie
                 while (zombienum != 0)
                 {
                     //Randomly choose an index given the size of the list of players
@@ -864,13 +937,14 @@ public final class MCInfection extends JavaPlugin implements Listener{
                     joinHuman(p);
                 }
 
+                //scheduled event that ends the game
                 Runnable scheduleGameEnd = new Runnable(){
                         public void run(){
                             if (config.TEAM_HUMAN.size() > 0)
                             {
                                 getServer().broadcastMessage(config.HUMAN_TEXT + "The humans have won! Game over!");
                             }
-                            else
+                            else //just in case this happens
                             {
                                 getServer().broadcastMessage(config.ZOMBIE_TEXT + "The zombies have won! Game over!");
                             }
@@ -878,50 +952,79 @@ public final class MCInfection extends JavaPlugin implements Listener{
                             //move all players back to waiting list
                             resetPlayers();
                         }
-
-
                 };
+                
+                //scheduled event that announces 30 seconds left - could pull from config instead?
+                if (gameTimeSeconds - 30 > 0)
+                {
+                	Runnable schedule30 = new Runnable(){
+                        public void run(){
+                            getServer().broadcastMessage(ChatColor.GOLD + "30 seconds left in the game!");
+                        }
+                	};
+                	game30 = Bukkit.getScheduler().runTaskLater(this, schedule30, (long)((gameTimeSeconds-30) * 20));
+                }
+                
+                //scheduled event that announces 10 seconds left
+                if (gameTimeSeconds - 10 > 0)
+                {
+                	Runnable schedule10 = new Runnable(){
+                        public void run(){
+                            getServer().broadcastMessage(ChatColor.GOLD + "10 seconds left in the game!");
+                        }
+                	};
+                	game10 = Bukkit.getScheduler().runTaskLater(this, schedule10, (long)((gameTimeSeconds-10) * 20));
+                }
 
                 gameEnd = Bukkit.getScheduler().runTaskLater(this, scheduleGameEnd, (long)(gameTimeSeconds * 20));
                 gameActive = true;
             }
 	}
 	
+	//TODO: Is it possible to merge human/zombie team list together and then go through that list by itself?
+	//Sends everyone back to waiting team - assume there are humans and zombies in case humans win
+	//Players who are offline at time of reset are simply removed from the team list
 	public void resetPlayers()
 	{
-            Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
+            //Move zombies and humans to waiting team
+		/*
+			Iterator<String> zombieIterator = config.TEAM_ZOMBIE.iterator();
             while(zombieIterator.hasNext()) {
                 String name = zombieIterator.next();
                 config.TEAM_WAITING.add(name);
                 zombieIterator.remove();
-            }
-
-            Iterator<String> humanIterator = config.TEAM_HUMAN.iterator();
-            while(humanIterator.hasNext()) {
-                String name = humanIterator.next();
-                config.TEAM_WAITING.add(name);
-                humanIterator.remove();
-            }
+            }*/
+		//Create a duplicate team list and run silentJoinWaiting() on the players obtained from that list
+		//to avoid ConcurrentModificationException - currently probably uses more memory than necessary
+		
+		Object[] zomList = config.TEAM_ZOMBIE.toArray();
+		for (Object name: zomList)
+		{
+			OfflinePlayer op = getServer().getOfflinePlayer((String)name);
+			if (op.isOnline())
+			{
+				Player p = op.getPlayer();
+				silentJoinWaiting(p);
+			}
+			else
+			{
+				removePlayerFromGame(op);
+			}
+		}
             
-            Iterator<String> waitingIterator = config.TEAM_WAITING.iterator();
-            while(waitingIterator.hasNext())
-            {
-                String name = waitingIterator.next();
-                OfflinePlayer op = getServer().getOfflinePlayer(name);
-                if (op.isOnline())
-                {
-                    //clear inventory 
-                    Player p = (Player)op;
-                    p.getInventory().clear();
-                    if (p.getActivePotionEffects() != null)
-                    {
-                            for (PotionEffect pe: p.getActivePotionEffects())
-                            {
-                                    p.removePotionEffect(pe.getType());
-                            }
-                    }
-                    p.teleport(config.SPAWN_WAIT);
-                }
-            }
+		Object[] humList = config.TEAM_HUMAN.toArray();
+		for (Object name: humList)
+		{
+			OfflinePlayer op = getServer().getOfflinePlayer((String)name);
+			if (op.isOnline())
+			{
+				Player p = op.getPlayer();
+				silentJoinWaiting(p);
+			}
+			else
+			{
+				removePlayerFromGame(op);
+			}
+		}
 	}
 }
