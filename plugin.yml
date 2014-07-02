@@ -121,22 +121,22 @@ commands:
        usage: /teams
        permission: infect.admin
        
-    save-leavespawn:
+    save-leave-point:
        description: Save leave point.
        usage: /teams
        permission: infect.admin
        
-    leavespawn:
+    leave-point:
        description: See leave point.
        usage: /teams
        permission: infect.admin
        
-    save-waitspawn:
+    save-wait-point:
        description: Save wait point.
        usage: /teams
        permission: infect.admin
        
-    waitspawn:
+    wait-point:
        description: See wait point.
        usage: /teams
        permission: infect.admin
@@ -154,4 +154,19 @@ commands:
     infection-end:
        description: Force-end the game.
        usage: /infection-end
+       permission: infect.admin
+       
+    ff:
+       description: Display friendly fire status
+       usage: /ff
+       permission: infect.player
+       
+    ffon:
+       description: Turn on friendly fire
+       usage: /ffon
+       permission: infect.admin
+       
+    ffoff:
+       description: Turn off friendly fire
+       usage: /ffoff
        permission: infect.admin
